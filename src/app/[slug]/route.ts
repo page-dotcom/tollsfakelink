@@ -1,22 +1,31 @@
 import { NextResponse } from 'next/server';
-import links from '@/data/links.json';
+// 1. Ganti import JSON dengan Supabase client
+import { supabase } from '@/data/supabase'; 
 import offerConfig from '@/data/offer.json';
-import appConfig from '@/data/config.json'; // Import config Histats
+import appConfig from '@/data/config.json'; 
 
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ slug: string }> }
 ) {
   const { slug } = await params;
-  const entry = (links as any[]).find((item) => item.id === slug);
 
-  // 1. Jika link tidak ada, ke 404
-  if (!entry) {
+  // 2. Ambil data dari tabel 'links' di Supabase berdasarkan ID (slug)
+  const { data: entry, error } = await supabase
+    .from('links')
+    .select('url')
+    .eq('id', slug)
+    .single();
+
+  // 3. Jika link tidak ada di database (atau error), ke 404
+  if (error || !entry) {
     const url = new URL(request.url);
     return NextResponse.redirect(new URL('/404', url.origin), { status: 302 });
   }
 
-  // 2. TENTUKAN TUJUAN (Link Asli vs Offer)
+  // --- SISANYA TETAP SAMA SEPERTI KODE ASLI KAMU ---
+
+  // TENTUKAN TUJUAN (Link Asli dari database vs Offer)
   let finalDestination = entry.url;
 
   const urlObj = new URL(request.url);
@@ -46,7 +55,6 @@ export async function GET(
   }
 
   // KASUS B: MANUSIA -> Tampilkan Loading Polos + Histats
-  // Kita inject ID Histats secara dinamis ke script di bawah
   const htmlContent = `
     <!DOCTYPE html>
     <html lang="en">
@@ -64,7 +72,6 @@ export async function GET(
           margin: 0;
           overflow: hidden;
         }
-        /* Loader Putih Simple */
         .loader {
           border: 3px solid rgba(255,255,255,0.1);
           border-top: 3px solid #fff;
