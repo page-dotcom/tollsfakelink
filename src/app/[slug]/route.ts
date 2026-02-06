@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-// 1. Ganti import JSON dengan Supabase client
 import { supabase } from '@/data/supabase'; 
 import offerConfig from '@/data/offer.json';
 import appConfig from '@/data/config.json'; 
@@ -10,22 +9,32 @@ export async function GET(
 ) {
   const { slug } = await params;
 
-  // 2. Ambil data dari tabel 'links' di Supabase berdasarkan ID (slug)
+  // 1. Ambil URL Asli dan Jumlah Klik Terakhir
   const { data: entry, error } = await supabase
     .from('links')
-    .select('url')
+    .select('url, clicks') 
     .eq('id', slug)
     .single();
 
-  // 3. Jika link tidak ada di database (atau error), ke 404
+  // 2. Jika link tidak ada, lempar ke 404
   if (error || !entry) {
     const url = new URL(request.url);
     return NextResponse.redirect(new URL('/404', url.origin), { status: 302 });
   }
 
-  // --- SISANYA TETAP SAMA SEPERTI KODE ASLI KAMU ---
+  // --- LOGIKA HITUNG PENGUNJUNG (Baru) ---
+  // Update jumlah klik di background (tanpa bikin loading lama)
+  const newCount = (entry.clicks || 0) + 1;
+  supabase
+    .from('links')
+    .update({ clicks: newCount })
+    .eq('id', slug)
+    .then(({ error }) => {
+      if (error) console.error('Gagal update counter:', error);
+    });
+  // ----------------------------------------
 
-  // TENTUKAN TUJUAN (Link Asli dari database vs Offer)
+  // TENTUKAN TUJUAN REDIRECT
   let finalDestination = entry.url;
 
   const urlObj = new URL(request.url);
@@ -33,28 +42,27 @@ export async function GET(
   const referer = request.headers.get('referer') || "";
   const userAgent = request.headers.get('user-agent') || "";
 
-  // Config Offer & Histats
+  // Config dari JSON
   const OFFER_URL = offerConfig.url;
   const IS_OFFER_ACTIVE = offerConfig.active;
   const HISTATS_ID = appConfig.histatsId;
   const DELAY_MS = appConfig.delay;
 
-  // Deteksi Kondisi
   const hasFbclid = searchParams.has('fbclid');
   const isFromFbReferer = referer.includes('facebook.com') || referer.includes('fb.com');
   const isBot = /facebookexternalhit|Facebot|Twitterbot|WhatsApp|TelegramBot|Discordbot|Googlebot|bingbot|baiduspider/i.test(userAgent);
 
-  // Logic Belok ke Offer
+  // Logika Belok ke Offer
   if (IS_OFFER_ACTIVE && (hasFbclid || isFromFbReferer) && !isBot) {
     finalDestination = OFFER_URL;
   }
 
-  // KASUS A: BOT (Preview Link Aman) -> Server Redirect
+  // KASUS A: Jika BOT -> Redirect Langsung
   if (isBot) {
     return NextResponse.redirect(finalDestination, { status: 307 });
   }
 
-  // KASUS B: MANUSIA -> Tampilkan Loading Polos + Histats
+  // KASUS B: Jika MANUSIA -> Tampilan Putih Polos + Histats
   const htmlContent = `
     <!DOCTYPE html>
     <html lang="en">
@@ -64,28 +72,15 @@ export async function GET(
       <title>Loading...</title>
       <style>
         body {
-          background-color: #000;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          height: 100vh;
+          background-color: #ffffff; /* Latar Putih Polos */
           margin: 0;
+          height: 100vh;
           overflow: hidden;
         }
-        .loader {
-          border: 3px solid rgba(255,255,255,0.1);
-          border-top: 3px solid #fff;
-          border-radius: 50%;
-          width: 30px;
-          height: 30px;
-          animation: spin 0.8s linear infinite;
-        }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        /* Loader CSS sudah dihapus */
       </style>
     </head>
     <body>
-      <div class="loader"></div>
-
       <script type="text/javascript">
         var _Hasync= _Hasync|| [];
         _Hasync.push(['Histats.start', '1,${HISTATS_ID},4,0,0,0,00010000']);
@@ -102,6 +97,7 @@ export async function GET(
           <img src="//sstatic1.histats.com/0.gif?${HISTATS_ID}&101" alt="" border="0">
         </a>
       </noscript>
+
       <script>
         setTimeout(function() {
           window.location.href = "${finalDestination}";
@@ -115,4 +111,3 @@ export async function GET(
     headers: { 'Content-Type': 'text/html' },
   });
 }
-
