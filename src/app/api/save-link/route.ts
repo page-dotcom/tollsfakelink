@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabase } from '@/data/supabase';
 
-// Fungsi sederhana untuk membuat string acak
 function generateRandomId(length = 6) {
   const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
   let result = '';
@@ -14,12 +13,28 @@ function generateRandomId(length = 6) {
 export async function POST(request: Request) {
   try {
     const { url } = await request.json();
+    const authHeader = request.headers.get('authorization');
+    const userAgent = request.headers.get('user-agent') || '';
+
+    // Ambil PIN dari Environment Variable Vercel
+    const PIN_RAHASIA = process.env.MY_SECRET_PIN;
+
+    // --- LOGIKA SATPAM API ---
+    // Jika akses datang dari skrip (Termux/Python), wajib cek PIN
+    if (userAgent.includes('python-requests') || authHeader) {
+      if (authHeader !== `Bearer ${PIN_RAHASIA}`) {
+        return NextResponse.json(
+          { success: false, error: 'Akses Ditolak: PIN Salah atau Tidak Ada' }, 
+          { status: 401 }
+        );
+      }
+    }
 
     if (!url) {
       return NextResponse.json({ error: 'URL harus diisi' }, { status: 400 });
     }
 
-    const shortId = generateRandomId(6); // Menghasilkan ID acak 6 karakter
+    const shortId = generateRandomId(6);
 
     const { data, error } = await supabase
       .from('links')
