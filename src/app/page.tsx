@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
 
-export default function TambahLink() {
+export default function Home() {
   const [url, setUrl] = useState('');
   const [result, setResult] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -11,56 +11,132 @@ export default function TambahLink() {
     setLoading(true);
     setResult(null);
 
-    const res = await fetch('/api/save-link', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ url }),
-    });
+    try {
+      const res = await fetch('/api/save-link', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url }),
+      });
 
-    const data = await res.json();
-    if (data.success) {
-      // Menampilkan hasil link yang sudah jadi
-      setResult(`${window.location.origin}/${data.shortId}`);
-      setUrl('');
-    } else {
-      alert('Gagal menyimpan: ' + data.error);
+      const data = await res.json();
+      if (data.success) {
+        setResult(`${window.location.origin}/${data.shortId}`);
+        setUrl('');
+      } else {
+        alert('Gagal: ' + data.error);
+      }
+    } catch (err) {
+      alert('Terjadi kesalahan koneksi');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (
-    <div style={{ padding: '20px', maxWidth: '400px', margin: 'auto', fontFamily: 'sans-serif' }}>
-      <h2>Buat Shortlink Acak</h2>
-      <form onSubmit={handleSubmit}>
-        <input
-          type="url"
-          placeholder="Masukkan URL Panjang (https://...)"
-          value={url}
-          onChange={(e) => setUrl(e.target.value)}
-          required
-          style={{ width: '100%', padding: '10px', marginBottom: '10px', borderRadius: '5px', border: '1px solid #ccc' }}
-        />
-        <button 
-          type="submit" 
-          disabled={loading}
-          style={{ width: '100%', padding: '10px', backgroundColor: '#0070f3', color: '#white', border: 'none', borderRadius: '5px', cursor: 'pointer' }}
-        >
-          {loading ? 'Menyimpan...' : 'Generate Link'}
-        </button>
-      </form>
+    <main style={{ 
+      backgroundColor: '#000', 
+      color: '#fff', 
+      minHeight: '100vh', 
+      display: 'flex', 
+      alignItems: 'center', 
+      justifyContent: 'center',
+      fontFamily: 'sans-serif',
+      padding: '20px'
+    }}>
+      <div style={{ 
+        width: '100%', 
+        maxWidth: '450px', 
+        padding: '30px', 
+        border: '1px solid #333', 
+        borderRadius: '12px',
+        backgroundColor: '#111'
+      }}>
+        <h1 style={{ fontSize: '24px', marginBottom: '10px', textAlign: 'center' }}>URL Shortener</h1>
+        <p style={{ color: '#888', textAlign: 'center', marginBottom: '25px', fontSize: '14px' }}>
+          Masukkan link tujuan, sistem akan buatkan ID acak.
+        </p>
 
-      {result && (
-        <div style={{ marginTop: '20px', padding: '10px', backgroundColor: '#eaffea', border: '1px solid #28a745', borderRadius: '5px' }}>
-          <p>Berhasil dibuat!</p>
-          <code style={{ wordBreak: 'break-all' }}>{result}</code>
+        <form onSubmit={handleSubmit}>
+          <input
+            type="url"
+            placeholder="Tempel link di sini (https://...)"
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+            required
+            style={{ 
+              width: '100%', 
+              padding: '12px', 
+              marginBottom: '15px', 
+              borderRadius: '6px', 
+              border: '1px solid #333', 
+              backgroundColor: '#000',
+              color: '#fff',
+              outline: 'none',
+              boxSizing: 'border-box'
+            }}
+          />
           <button 
-            onClick={() => navigator.clipboard.writeText(result)}
-            style={{ marginLeft: '10px', fontSize: '12px', cursor: 'pointer' }}
+            type="submit" 
+            disabled={loading}
+            style={{ 
+              width: '100%', 
+              padding: '12px', 
+              backgroundColor: '#fff', 
+              color: '#000', 
+              border: 'none', 
+              borderRadius: '6px', 
+              fontWeight: 'bold',
+              cursor: loading ? 'not-allowed' : 'pointer',
+              opacity: loading ? 0.7 : 1
+            }}
           >
-            Copy
+            {loading ? 'Sedang Memproses...' : 'Buat Shortlink'}
           </button>
-        </div>
-      )}
-    </div>
+        </form>
+
+        {result && (
+          <div style={{ 
+            marginTop: '25px', 
+            padding: '15px', 
+            backgroundColor: '#1a1a1a', 
+            border: '1px dashed #444', 
+            borderRadius: '8px',
+            textAlign: 'center'
+          }}>
+            <p style={{ margin: '0 0 10px 0', fontSize: '14px', color: '#aaa' }}>Link Kamu Berhasil Dibuat:</p>
+            <div style={{ 
+              display: 'flex', 
+              gap: '10px', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              wordBreak: 'break-all',
+              backgroundColor: '#000',
+              padding: '10px',
+              borderRadius: '4px'
+            }}>
+              <span style={{ color: '#00ff00', fontSize: '14px' }}>{result}</span>
+            </div>
+            <button 
+              onClick={() => {
+                navigator.clipboard.writeText(result);
+                alert('Tersalin!');
+              }}
+              style={{ 
+                marginTop: '15px',
+                background: 'none',
+                border: '1px solid #555',
+                color: '#ccc',
+                padding: '5px 15px',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                fontSize: '12px'
+              }}
+            >
+              Salin Link
+            </button>
+          </div>
+        )}
+      </div>
+    </main>
   );
 }
