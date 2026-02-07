@@ -1,15 +1,16 @@
 'use client';
 
 import { useState, useEffect, FormEvent } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+// PERBAIKAN: Kita pakai import ini supaya tidak perlu install library baru
+import { supabase } from '@/data/supabase';
 
-// PIN Kamu (Sementara Hardcode karena belum ada Login System)
+// PIN Kamu
 const MY_PIN = "Yasue1998"; 
 
 export default function Home() {
-  const supabase = createClientComponentClient();
+  // HAPUS baris createClientComponentClient() karena kita pakai import di atas
 
-  // --- STATE MANAGEMENT (Pengganti Variabel JS Biasa) ---
+  // --- STATE MANAGEMENT ---
   const [siteName, setSiteName] = useState("ShortCuts - Personal Tool");
   const [longUrl, setLongUrl] = useState("");
   const [shortUrl, setShortUrl] = useState("");
@@ -29,17 +30,17 @@ export default function Home() {
 
   // --- 1. LOAD DATA SAAT WEB DIBUKA ---
   useEffect(() => {
-    // Ambil Settings (Judul Web, dll)
+    // Ambil Settings
     async function loadSettings() {
       const { data } = await supabase.from('settings').select('*').single();
       if (data) {
         setSettings(data);
         setSiteName(data.site_name);
-        document.title = data.site_name; // Ubah Judul Tab Browser
+        document.title = data.site_name; 
       }
     }
 
-    // Ambil Last Link dari LocalStorage (Fitur JS lama kamu)
+    // Ambil Last Link dari LocalStorage
     const last = localStorage.getItem('lastLink');
     if (last) {
       setShortUrl(last);
@@ -47,13 +48,12 @@ export default function Home() {
     }
 
     loadSettings();
-    fetchLinks(); // Ambil data tabel
+    fetchLinks(); 
   }, []);
 
   // --- 2. FUNGSI AMBIL DATA LIST ---
   const fetchLinks = async () => {
     try {
-      // Panggil API Vercel yang sudah kita buat
       const res = await fetch('/api/links', {
         headers: { 'Authorization': `Bearer ${MY_PIN}` }
       });
@@ -66,14 +66,13 @@ export default function Home() {
     }
   };
 
-  // --- 3. FUNGSI SHORTEN (Pengganti Math.random) ---
+  // --- 3. FUNGSI SHORTEN ---
   const handleShorten = async (e: FormEvent) => {
     e.preventDefault();
     if (!longUrl) return;
 
     setIsLoading(true);
     
-    // Animasi Progress Bar (Simulasi dikit biar keren)
     let p = 0;
     const interval = setInterval(() => {
       p += 5;
@@ -82,7 +81,6 @@ export default function Home() {
     }, 50);
 
     try {
-      // HIT API VERCEL REAL
       const res = await fetch('/api/save-link', {
         method: 'POST',
         headers: {
@@ -99,13 +97,13 @@ export default function Home() {
 
       setTimeout(() => {
         if (data.success) {
-          const resultLink = `https://tollsfakelink.vercel.app/${data.shortId}`; // Ganti domain kamu
+          const resultLink = `https://tollsfakelink.vercel.app/${data.shortId}`; 
           setShortUrl(resultLink);
           localStorage.setItem('lastLink', resultLink);
           setShowResult(true);
           setIsLoading(false);
           setLongUrl("");
-          fetchLinks(); // Refresh tabel otomatis
+          fetchLinks(); 
         } else {
           alert("Gagal: " + data.error);
           setIsLoading(false);
@@ -141,12 +139,11 @@ export default function Home() {
       headers: { 'Authorization': `Bearer ${MY_PIN}` },
       body: JSON.stringify({ id })
     });
-    fetchLinks(); // Refresh tabel
+    fetchLinks(); 
   };
 
   // --- 6. FUNGSI SAVE SETTINGS ---
   const saveSettings = async () => {
-    // Kita pakai Supabase client langsung biar cepat (karena auth di-skip)
     const { error } = await supabase
       .from('settings')
       .update({
@@ -164,7 +161,7 @@ export default function Home() {
     }
   };
 
-  // --- RENDER TAMPILAN (HTML ASLI KAMU) ---
+  // --- TAMPILAN (RENDER) ---
   return (
     <>
       <nav className="navbar navbar-custom navbar-fixed-top">
@@ -235,7 +232,7 @@ export default function Home() {
                   </div>
                 )}
 
-                {/* SHARE AREA (Muncul kalau ada hasil) */}
+                {/* SHARE AREA */}
                 {showResult && (
                   <div id="share-area">
                     <div className="social-icons">
@@ -256,7 +253,7 @@ export default function Home() {
               </button>
             </div>
 
-            {/* LIST AREA (Tabel Data) */}
+            {/* LIST AREA */}
             {showList && (
               <div className="list-box" style={{display:'block'}}>
                 <div className="table-responsive">
