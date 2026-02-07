@@ -1,72 +1,85 @@
 import './globals.css';
 import type { Metadata, Viewport } from "next";
+import { supabase } from '@/data/supabase';
 
 // 1. SETTING VIEWPORT (Warna Status Bar HP)
 export const viewport: Viewport = {
-  themeColor: "#050505", // Hitam pekat (sesuai tema)
+  themeColor: "#050505", // Hitam pekat
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
 };
 
-// 2. SETTING META TAG LENGKAP + ICON + GAMBAR
-export const metadata: Metadata = {
-  // Ganti URL ini dengan domain asli Vercel kamu nanti
-  metadataBase: new URL('https://www.sekphim-tv.eu.org'), 
-
-  title: {
-    default: "SecureLink - Private URL Shortener",
-    template: "%s | SecureLink"
-  },
-  description: "Official private link management system. Secure, fast, and reliable redirection service.",
+// 2. GENERATE METADATA (DINAMIS DARI DATABASE)
+// Ini pengganti 'export const metadata' biar bisa ambil data dulu
+export async function generateMetadata(): Promise<Metadata> {
   
-  // -- ICON DI TAB BROWSER --
-  icons: {
-    icon: '/icon.png',        // Pastikan ada file icon.png di folder public
-    shortcut: '/icon.png',
-    apple: '/icon.png',       // Icon untuk pengguna iPhone/Mac
-  },
+  // Ambil Nama Situs dari Database
+  const { data } = await supabase.from('settings').select('site_name').single();
+  
+  // Kalau database belum siap/error, pakai nama default ini
+  const siteName = data?.site_name || "SecureLink System";
+  
+  const baseUrl = 'https://www.sekphim-tv.eu.org';
 
-  // -- OPEN GRAPH (Facebook, WhatsApp, LinkedIn) --
-  openGraph: {
-    title: "SecureLink - Access Restricted",
-    description: "This is a private secure link node. Official management system.",
-    url: '/',
-    siteName: "SecureLink System",
-    locale: "en_US",
-    type: "website",
-    images: [
-      {
-        url: '/og-image.jpg', // Pastikan ada file og-image.jpg di folder public
-        width: 1200,
-        height: 630,
-        alt: "SecureLink System Preview",
-      },
-    ],
-  },
+  return {
+    metadataBase: new URL(baseUrl),
 
-  // -- TWITTER / X --
-  twitter: {
-    card: "summary_large_image",
-    title: "SecureLink System",
-    description: "Private URL Shortener Service.",
-    images: ['/og-image.jpg'], // Mengambil gambar yang sama
-  },
+    title: {
+      default: siteName,
+      template: `%s | ${siteName}` // Nanti jadinya: "Halaman X | NamaSitus"
+    },
+    description: `Official private link management system by ${siteName}. Secure and reliable.`,
 
-  // -- ROBOTS (Agar Halaman Utama di-Index Google) --
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
+    // -- ICON --
+    icons: {
+      icon: '/icon.png',
+      shortcut: '/icon.png',
+      apple: '/icon.png',
+    },
+
+    // -- OPEN GRAPH (WA, FB, IG) --
+    openGraph: {
+      title: `${siteName} - Access Restricted`,
+      description: "This is a private secure link node. Official management system.",
+      url: '/',
+      siteName: siteName, // Nama situs di preview WA
+      locale: "en_US",
+      type: "website",
+      images: [
+        {
+          url: '/og-image.jpg',
+          width: 1200,
+          height: 630,
+          alt: `${siteName} Preview`,
+        },
+      ],
+    },
+
+    // -- TWITTER / X --
+    twitter: {
+      card: "summary_large_image",
+      title: siteName,
+      description: "Private URL Shortener Service.",
+      images: ['/og-image.jpg'],
+    },
+
+    // -- ROBOTS --
+    robots: {
       index: true,
       follow: true,
-      "max-video-preview": -1,
-      "max-image-preview": "large",
-      "max-snippet": -1,
+      googleBot: {
+        index: true,
+        follow: true,
+        "max-video-preview": -1,
+        "max-image-preview": "large",
+        "max-snippet": -1,
+      },
     },
-  },
-};
+  };
+}
 
+// 3. ROOT LAYOUT (TAMPILAN DASAR)
 export default function RootLayout({
   children,
 }: {
@@ -75,7 +88,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        {/* INI KUNCI AGAR TAMPILAN KAMU BENAR (BOOTSTRAP 3) */}
+        {/* BOOTSTRAP 3 & FONT POPPINS (JANGAN DIHAPUS) */}
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" />
         <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet" />
       </head>
