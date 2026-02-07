@@ -3,13 +3,9 @@
 import { useState, useEffect, FormEvent } from 'react';
 import { supabase } from '@/data/supabase';
 
-
-    // 2. Ambil PIN dari Environment Variable Vercel
-    const MY_PIN = process.env.MY_SECRET_PIN;
-
-
-
-const ITEMS_PER_PAGE = 10; // Batas 5 Link per Halaman
+// --- BAGIAN INI YANG BERUBAH ---
+// Mengambil PIN dari Vercel Environment Variable
+const MY_PIN = process.env.MY_SECRET_PIN; 
 
 export default function Home() {
   // --- STATE ---
@@ -28,8 +24,9 @@ export default function Home() {
   const [showList, setShowList] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
 
-  // PAGINATION STATE (BARU)
+  // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 5;
 
   // Edit Mode
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -42,8 +39,14 @@ export default function Home() {
 
   // --- EFFECT ---
   useEffect(() => {
+    // Cek apakah PIN sudah disetting di Vercel
+    if (!MY_PIN) {
+      console.error("WADUH! Lupa pasang NEXT_PUBLIC_MY_PIN di Vercel Settings!");
+    }
+    
     fetchSettings();
     fetchLinks();
+    
     const last = localStorage.getItem('lastLink');
     if (last) {
       setShortUrl(last);
@@ -64,7 +67,7 @@ export default function Home() {
       const res = await fetch('/api/links', { headers: { 'Authorization': `Bearer ${MY_PIN}` } });
       const json = await res.json();
       if (json.success) setLinks(json.data);
-    } catch (e) { console.error(e); }
+    } catch (e) { console.error("Gagal ambil data:", e); }
   }
 
   // --- ACTIONS ---
@@ -95,10 +98,11 @@ export default function Home() {
           setViewState('result');
           setLongUrl("");
           fetchLinks();
-          setCurrentPage(1); // Reset ke halaman 1 kalau ada link baru
+          setCurrentPage(1); // Reset paginasi
         } else {
           setViewState('form');
-          alert("Gagal: " + data.error);
+          // Alert manual gpp buat debugging kalau error
+          alert("Gagal: " + (data.error || "Cek PIN Vercel!")); 
         }
       }, 500);
     } catch (err) {
@@ -121,12 +125,22 @@ export default function Home() {
   };
 
   const handleDelete = async (id: string) => {
+    if(!confirm("Hapus link ini?")) return;
+    
+    // Optimistic UI update (hapus duluan biar cepet)
+    const prevLinks = [...links];
     setLinks(links.filter(l => l.id !== id));
-    await fetch('/api/links', {
+
+    const res = await fetch('/api/links', {
       method: 'DELETE',
       headers: { 'Authorization': `Bearer ${MY_PIN}` },
       body: JSON.stringify({ id })
     });
+
+    if (!res.ok) {
+      setLinks(prevLinks); // Balikin kalau gagal (misal PIN salah)
+      alert("Gagal hapus. Cek PIN.");
+    }
   };
 
   // Edit Logic
@@ -173,7 +187,7 @@ export default function Home() {
     catch { return ""; }
   };
 
-  // --- LOGIKA PAGINATION ---
+  // Pagination Logic
   const indexOfLastItem = currentPage * ITEMS_PER_PAGE;
   const indexOfFirstItem = indexOfLastItem - ITEMS_PER_PAGE;
   const currentItems = links.slice(indexOfFirstItem, indexOfLastItem);
@@ -182,7 +196,7 @@ export default function Home() {
   const prevPage = () => { if (currentPage > 1) setCurrentPage(currentPage - 1); };
   const nextPage = () => { if (currentPage < totalPages) setCurrentPage(currentPage + 1); };
 
-  // Style tombol sosmed
+  // Style Inline Sosmed (Biar 100% Muncul)
   const socialBtnStyle = {
     width: '45px', height: '45px', borderRadius: '50%',
     display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -215,7 +229,7 @@ export default function Home() {
                   {editingId ? "Edit URL Tujuan" : (viewState === 'result' ? "Link Ready!" : "Shorten URL")}
                 </h2>
                 {!editingId && viewState === 'form' && (
-                  <p className="simple-desc">Paste long URL below</p>
+                  <p className="simple-desc" style={{color:'#95a5a6', marginTop:'5px'}}>Paste long URL below</p>
                 )}
               </div>
 
@@ -226,7 +240,7 @@ export default function Home() {
                   <div id="form-view">
                     <form onSubmit={handleShorten}>
                       <div className="input-group input-group-lg">
-                        <input type="url" className="form-control input-lg-custom" placeholder="https://..." required value={longUrl} onChange={(e) => setLongUrl(e.target.value)} />
+                        <input type="url" id="oriUrl" className="form-control input-lg-custom" placeholder="https://..." required value={longUrl} onChange={(e) => setLongUrl(e.target.value)} />
                         <span className="input-group-btn">
                           <button className="btn btn-lg-custom" type="submit">SHORTEN</button>
                         </span>
@@ -237,17 +251,17 @@ export default function Home() {
 
                 {/* LOADING */}
                 {!editingId && viewState === 'loading' && (
-                  <div style={{textAlign:'center', padding:'20px'}}>
-                    <h2 style={{margin:'10px 0', color:'#3498db', fontWeight:700}}>{progress}%</h2>
+                  <div id="loading-area" style={{display:'block', textAlign:'center'}}>
+                    <h2 style={{margin:'10px 0', color:'#3498db', fontWeight:700}} id="p-percent">{progress}%</h2>
                     <small style={{color:'#bbb', letterSpacing:'1px'}}>PROCESSING LINK...</small>
                   </div>
                 )}
 
                 {/* RESULT */}
                 {!editingId && viewState === 'result' && (
-                  <div id="result-view">
+                  <div id="result-view" style={{display:'block'}}>
                     <div className="input-group input-group-lg">
-                      <input type="text" className="form-control input-lg-custom input-result" value={shortUrl} readOnly />
+                      <input type="text" id="resUrl" className="form-control input-lg-custom input-result" value={shortUrl} readOnly />
                       <span className="input-group-btn">
                         <button className={`btn btn-lg-custom ${copyBtnText === 'COPIED!' ? 'btn-success' : ''}`} onClick={() => handleCopy(shortUrl)} type="button" style={{ background: copyBtnText === 'COPIED!' ? '#27ae60' : '' }}>
                           {copyBtnText}
@@ -255,14 +269,12 @@ export default function Home() {
                       </span>
                     </div>
                     
-                    <div style={{textAlign:'center', margin:'15px 0'}}>
-                      <span style={{color:'#999', textDecoration:'underline', cursor:'pointer', fontSize:'13px'}} 
-                            onClick={() => { setViewState('form'); setLongUrl(""); localStorage.removeItem('lastLink'); }}>
+                    <span className="reset-link" style={{display:'block', marginTop:15, cursor:'pointer', textDecoration:'underline', color:'#999'}} 
+                          onClick={() => { setViewState('form'); setLongUrl(""); localStorage.removeItem('lastLink'); }}>
                         Shorten another link
-                      </span>
-                    </div>
+                    </span>
 
-                    {/* SOSMED BUTTONS (PASTI MUNCUL) */}
+                    {/* SOSMED BUTTONS (INLINE STYLE BIAR MUNCUL) */}
                     <div style={{display:'flex', justifyContent:'center', gap:'15px', marginTop:'25px'}}>
                         <a href={`https://api.whatsapp.com/send?text=${shortUrl}`} target="_blank" style={{...socialBtnStyle, background:'#25D366'}}><svg viewBox="0 0 24 24" style={{width:22, fill:'#fff'}}><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></a>
                         <a href={`https://www.facebook.com/sharer/sharer.php?u=${shortUrl}`} target="_blank" style={{...socialBtnStyle, background:'#1877F2'}}><svg viewBox="0 0 24 24" style={{width:22, fill:'#fff'}}><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></a>
@@ -274,7 +286,7 @@ export default function Home() {
                 
                 {/* EDIT FORM */}
                 {editingId && (
-                   <div className="edit-view" style={{marginTop:'20px'}}>
+                   <div className="edit-view" style={{marginTop:20}}>
                      <div className="input-group">
                        <input type="text" className="form-control" value={editUrlVal} onChange={(e) => setEditUrlVal(e.target.value)} style={{height:55}} />
                        <span className="input-group-btn">
@@ -294,7 +306,7 @@ export default function Home() {
             <div className="text-center">
               <button 
                 type="button" 
-                className="btn-toggle-list" 
+                className={`btn-toggle-list ${showList ? 'active' : ''}`} 
                 id="btnShowList" 
                 onClick={() => setShowList(!showList)}
                 style={{
@@ -392,7 +404,7 @@ export default function Home() {
 
             {/* SETTINGS PANEL */}
             {showSettings && (
-              <div className="settings-panel" id="settingsArea" style={{display:'block',padding:30, borderRadius:12, marginTop:20}}>
+              <div className="settings-panel" id="settingsArea" style={{display:'block', background:'#2c3e50', color:'#fff', padding:30, borderRadius:12, marginTop:20}}>
                 <div className="settings-header">
                   <h4 style={{marginTop:0}}><span className="glyphicon glyphicon-wrench" style={{fontSize:16}}></span> Konfigurasi Situs</h4>
                 </div>
