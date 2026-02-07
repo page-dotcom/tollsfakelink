@@ -3,8 +3,8 @@
 import { useState, useEffect, FormEvent } from 'react';
 import { supabase } from '@/data/supabase';
 
-const MY_PIN = "Yasue1998"; 
-const ITEMS_PER_PAGE = 5; // Batas 5 Link per Halaman
+const MY_PIN = process.env.MY_SECRET_PIN;
+const ITEMS_PER_PAGE = 10; // Batas 5 Link per Halaman
 
 export default function Home() {
   // --- STATE ---
@@ -210,7 +210,7 @@ export default function Home() {
                   {editingId ? "Edit URL Tujuan" : (viewState === 'result' ? "Link Ready!" : "Shorten URL")}
                 </h2>
                 {!editingId && viewState === 'form' && (
-                  <p className="simple-desc" style={{color:'#95a5a6', marginTop:'5px'}}>Paste long URL below</p>
+                  <p className="simple-desc">Paste long URL below</p>
                 )}
               </div>
 
@@ -387,7 +387,7 @@ export default function Home() {
 
             {/* SETTINGS PANEL */}
             {showSettings && (
-              <div className="settings-panel" id="settingsArea" style={{display:'block', background:'#2c3e50', color:'#fff', padding:30, borderRadius:12, marginTop:20}}>
+              <div className="settings-panel" id="settingsArea" style={{display:'block',padding:30, borderRadius:12, marginTop:20}}>
                 <div className="settings-header">
                   <h4 style={{marginTop:0}}><span className="glyphicon glyphicon-wrench" style={{fontSize:16}}></span> Konfigurasi Situs</h4>
                 </div>
