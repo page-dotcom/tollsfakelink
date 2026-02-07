@@ -4,15 +4,17 @@ import { useState, useEffect, FormEvent } from 'react';
 import { supabase } from '@/data/supabase';
 
 export default function Home() {
-  // --- STATE ---
+  // --- AUTH STATE ---
   const [session, setSession] = useState<any>(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loginLoading, setLoginLoading] = useState(false);
 
+  // --- APP STATE ---
   const [settings, setSettings] = useState({
     site_name: 'ShortCuts',
     offer_url: '',
+    offer_active: false, // TAMBAHAN: Status On/Off Offer
     histats_id: ''
   });
 
@@ -22,21 +24,18 @@ export default function Home() {
   const [shortUrl, setShortUrl] = useState("");
   
   const [links, setLinks] = useState<any[]>([]);
-  
-  // STATE TOGGLE (Ini yang bikin error kemarin, sekarang diperbaiki)
   const [showList, setShowList] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
 
-  // Pagination
+  // PAGINATION
   const [currentPage, setCurrentPage] = useState(1);
-  const ITEMS_PER_PAGE = 10;
+  const ITEMS_PER_PAGE = 5;
 
   // Edit & Feedback
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editUrlVal, setEditUrlVal] = useState("");
   const [btnCopyText, setBtnCopyText] = useState("COPY");
   const [btnSaveText, setBtnSaveText] = useState("SIMPAN PENGATURAN");
-  const [saveBtnColor, setSaveBtnColor] = useState("");
 
   const [toast, setToast] = useState<{msg: string, type: 'success'|'error'|''} | null>(null);
 
@@ -127,7 +126,7 @@ export default function Home() {
           setLongUrl("");
           fetchLinks(); 
           setCurrentPage(1); 
-          showToast("Link Ready!", "success");
+          showToast("Link berhasil dibuat", "success");
         } else {
           setViewState('form');
           showToast("Gagal", "error");
@@ -141,7 +140,7 @@ export default function Home() {
     if(!id) {
       setBtnCopyText("COPIED!");
       setTimeout(() => setBtnCopyText("COPY"), 1500);
-      showToast("Link disalin", "success");
+      showToast("Disalin", "success");
     } else {
       const btn = document.getElementById(`btn-copy-${id}`);
       if(btn) {
@@ -153,14 +152,10 @@ export default function Home() {
   };
 
   const handleDelete = async (id: string) => {
-    // Hapus dulu dari layar (Biar kerasa cepet)
-    const prev = [...links];
-    setLinks(links.filter(l => l.id !== id));
-    
     const { error } = await supabase.from('links').delete().eq('id', id);
-    if (error) {
-        setLinks(prev); // Balikin kalo gagal
-        showToast("Gagal hapus", "error");
+    if (!error) {
+      setLinks(links.filter(l => l.id !== id));
+      showToast("Dihapus", "success");
     }
   };
 
@@ -174,7 +169,7 @@ export default function Home() {
     await supabase.from('links').update({ url: editUrlVal }).eq('id', editingId);
     setEditingId(null);
     fetchLinks();
-    showToast("Link diupdate", "success");
+    showToast("Diupdate", "success");
   };
 
   const handleSaveSettings = async () => {
@@ -182,16 +177,11 @@ export default function Home() {
     await supabase.from('settings').update({
       site_name: settings.site_name,
       offer_url: settings.offer_url,
+      offer_active: settings.offer_active, // SIMPAN STATUS ON/OFF
       histats_id: settings.histats_id
     }).eq('id', 1);
-    
     setBtnSaveText("BERHASIL!");
-    setSaveBtnColor("#27ae60");
-    document.title = settings.site_name;
-    setTimeout(() => {
-        setBtnSaveText("SIMPAN PENGATURAN");
-        setSaveBtnColor("");
-    }, 2000);
+    setTimeout(() => setBtnSaveText("SIMPAN PENGATURAN"), 2000);
   };
 
   const getFavicon = (url: string) => {
@@ -211,7 +201,7 @@ export default function Home() {
   // --- RENDER ---
   return (
     <>
-      {/* 1. TOAST */}
+      {/* TOAST */}
       {toast && (
         <div style={{
           position: 'fixed', top: '20px', left: '50%', transform: 'translateX(-50%)',
@@ -223,7 +213,7 @@ export default function Home() {
         </div>
       )}
 
-      {/* 2. LOGIN POPUP */}
+      {/* LOGIN POPUP */}
       {!session && (
         <div style={{
           position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
@@ -242,13 +232,12 @@ export default function Home() {
         </div>
       )}
 
-      {/* 3. MAIN APP */}
+      {/* DASHBOARD */}
       {session && (
         <>
-          {/* HEADER FIX RAPI */}
           <nav className="navbar navbar-custom navbar-fixed-top">
-            <div className="container-fluid" style={{display:'flex', justifyContent:'space-between', alignItems:'center', height:'100%'}}>
-              <div className="navbar-header" style={{float:'none'}}>
+            <div className="container-fluid">
+              <div className="navbar-header" style={{float:'left'}}>
                 <a className="navbar-brand" href="#" style={{display:'flex', alignItems:'center', gap:'10px'}}>
                   <svg className="brand-icon-svg" viewBox="0 0 24 24" style={{width:28, height:28, fill:'#3498db'}}>
                     <path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-3.31-2.69-6-6-6c-3.31,0-6,2.69-6,6c0,2.22,1.21,4.15,3,5.19V19 c-2.97-1.35-5-4.42-5-8c0-4.97,4.03-9,9-9s9,4.03,9,9c0,1.86-0.55,3.61-1.5,5.1l-1.45-1.45C18.78,14.16,19.04,13.57,19.14,12.94z M9.64,12.56L7.52,14.68C7.36,14.54,7.18,14.4,7,14.25V17c1.32-0.84,2.2-2.31,2.2-4C9.2,12.89,9.36,12.75,9.64,12.56z M12,8 c2.21,0,4,1.79,4,4s-1.79,4-4,4s-4-1.79-4-4S9.79,8,12,8z"/>
@@ -256,10 +245,10 @@ export default function Home() {
                   {settings.site_name}
                 </a>
               </div>
-              <div>
-                 <button onClick={handleLogout} className="btn btn-sm btn-danger">
-                   <span className="glyphicon glyphicon-log-out"></span> LOGOUT
-                 </button>
+              <div style={{float:'right', padding:'15px'}}>
+                 <span onClick={handleLogout} style={{color:'#e74c3c', cursor:'pointer', fontWeight:'bold', fontSize:'12px'}}>
+                   LOGOUT <span className="glyphicon glyphicon-log-out"></span>
+                 </span>
               </div>
             </div>
           </nav>
@@ -275,6 +264,7 @@ export default function Home() {
                   </div>
 
                   <div className="tool-body">
+                    {/* FORM */}
                     {!editingId && viewState === 'form' && (
                       <div id="form-view">
                         <form onSubmit={handleShorten}>
@@ -288,6 +278,7 @@ export default function Home() {
                       </div>
                     )}
 
+                    {/* LOADING */}
                     {!editingId && viewState === 'loading' && (
                       <div id="loading-area" style={{textAlign:'center'}}>
                         <h2 style={{color:'#3498db', fontWeight:700}}>{progress}%</h2>
@@ -295,6 +286,7 @@ export default function Home() {
                       </div>
                     )}
 
+                    {/* RESULT */}
                     {!editingId && viewState === 'result' && (
                       <div id="result-view">
                         <div className="input-group input-group-lg">
@@ -305,6 +297,7 @@ export default function Home() {
                         </div>
                         <span className="reset-link" onClick={() => { setViewState('form'); setLongUrl(""); }} style={{display:'block', marginTop:15, textAlign:'center', cursor:'pointer', color:'#999'}}>Shorten another link</span>
                         
+                        {/* SOSMED (Hardcoded Style biar muncul) */}
                         <div style={{display:'flex', justifyContent:'center', gap:'10px', marginTop:'20px'}}>
                            <a href={`https://api.whatsapp.com/send?text=${shortUrl}`} target="_blank" style={{width:40,height:40,background:'#25D366',borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',color:'#fff'}}><span className="glyphicon glyphicon-comment"></span></a>
                            <a href={`https://www.facebook.com/sharer/sharer.php?u=${shortUrl}`} target="_blank" style={{width:40,height:40,background:'#1877F2',borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',color:'#fff'}}><span className="glyphicon glyphicon-share"></span></a>
@@ -329,15 +322,15 @@ export default function Home() {
                   </div>
                 </div>
 
-                {/* TOMBOL LIST */}
                 <div className="text-center">
                   <button className="btn-toggle-list" onClick={() => setShowList(!showList)} style={{background:'#34495e', color:'#fff', border:'none', padding:'10px 20px', borderRadius:'50px'}}>
                     <span className="glyphicon glyphicon-list-alt"></span> {showList ? 'HIDE LIST' : 'MY URL LIST'}
                   </button>
                 </div>
 
-                {/* LIST AREA (Pake display: block/none biar elemen tetep ada di DOM) */}
-                <div className="list-box" style={{marginTop:20, background:'#fff', padding:20, borderRadius:12, display: showList ? 'block' : 'none'}}>
+                {/* LIST AREA */}
+                {showList && (
+                  <div className="list-box" style={{marginTop:20, background:'#fff', padding:20, borderRadius:12}}>
                     <div className="table-responsive">
                       <table className="table table-hover">
                         <thead>
@@ -350,23 +343,19 @@ export default function Home() {
                           </tr>
                         </thead>
                         <tbody>
-                          {currentItems.length === 0 ? (
-                             <tr><td colSpan={5} className="text-center">Belum ada link.</td></tr>
-                          ) : (
-                            currentItems.map(link => (
-                              <tr key={link.id}>
-                                <td><img src={getFavicon(link.url)} style={{width:25, height:25, borderRadius:4}} onError={(e)=>{e.currentTarget.style.display='none'}} /></td>
-                                <td><b style={{color:'#333'}}>{link.id}</b></td>
-                                <td><div style={{maxWidth:'150px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', color:'#999', fontSize:'12px'}}>{link.url}</div></td>
-                                <td><span className="badge">{link.clicks || 0}</span></td>
-                                <td className="text-right">
-                                  <button className="btn btn-xs" onClick={() => handleCopy(`https://tollsfakelink.vercel.app/${link.id}`, link.id)} id={`btn-copy-${link.id}`}><span className="glyphicon glyphicon-copy"></span></button>
-                                  <button className="btn btn-xs" onClick={() => openEdit(link.id, link.url)}><span className="glyphicon glyphicon-pencil"></span></button>
-                                  <button className="btn btn-xs" onClick={() => handleDelete(link.id)} style={{color:'#e74c3c'}}><span className="glyphicon glyphicon-trash"></span></button>
-                                </td>
-                              </tr>
-                            ))
-                          )}
+                          {currentItems.map(link => (
+                            <tr key={link.id}>
+                              <td><img src={getFavicon(link.url)} style={{width:25, height:25, borderRadius:4}} onError={(e)=>{e.currentTarget.style.display='none'}} /></td>
+                              <td><b style={{color:'#333'}}>{link.id}</b></td>
+                              <td><div style={{maxWidth:'150px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', color:'#999', fontSize:'12px'}}>{link.url}</div></td>
+                              <td><span className="badge">{link.clicks || 0}</span></td>
+                              <td className="text-right">
+                                <button className="btn btn-xs" onClick={() => handleCopy(`https://tollsfakelink.vercel.app/${link.id}`, link.id)} id={`btn-copy-${link.id}`}><span className="glyphicon glyphicon-copy"></span></button>
+                                <button className="btn btn-xs" onClick={() => openEdit(link.id, link.url)}><span className="glyphicon glyphicon-pencil"></span></button>
+                                <button className="btn btn-xs" onClick={() => handleDelete(link.id)} style={{color:'#e74c3c'}}><span className="glyphicon glyphicon-trash"></span></button>
+                              </td>
+                            </tr>
+                          ))}
                         </tbody>
                       </table>
                     </div>
@@ -383,9 +372,9 @@ export default function Home() {
                         Next <span className="glyphicon glyphicon-chevron-right"></span>
                       </button>
                     </div>
-                </div>
+                  </div>
+                )}
 
-                {/* TOMBOL SETTINGS */}
                 <div className="text-center" style={{marginTop:30, marginBottom:20}}>
                   <button className="btn-gear-toggle" onClick={() => setShowSettings(!showSettings)} style={{width:40, height:40, borderRadius:'50%', background:'#fff', border:'1px solid #ddd'}}>
                     <span className="glyphicon glyphicon-cog"></span>
@@ -393,10 +382,20 @@ export default function Home() {
                   <div style={{fontSize:12, color:'#ccc', marginTop:5}}>Settings</div>
                 </div>
 
-                {/* SETTINGS AREA */}
-                <div className="settings-panel" style={{background:'#111', color:'#fff', padding:30, borderRadius:3, marginTop:20, display: showSettings ? 'block' : 'none'}}>
+                {showSettings && (
+                  <div className="settings-panel" style={{background:'#2c3e50', color:'#fff', padding:30, borderRadius:12, marginTop:20}}>
                     <h4>Konfigurasi</h4>
                     <div style={{marginTop:15}}>
+                        <div className="checkbox" style={{marginBottom: 20, background: 'rgba(0,0,0,0.2)', padding: 10, borderRadius: 5}}>
+                          <label style={{color: '#fff', fontWeight: 'bold'}}>
+                            <input 
+                              type="checkbox" 
+                              checked={settings.offer_active} 
+                              onChange={(e) => setSettings({...settings, offer_active: e.target.checked})} 
+                            /> AKTIFKAN REDIRECT OFFER?
+                          </label>
+                        </div>
+
                         <label>Site Name</label>
                         <input type="text" className="form-control" value={settings.site_name} onChange={(e) => setSettings({...settings, site_name: e.target.value})} style={{color:'#000'}} />
                         
@@ -408,7 +407,8 @@ export default function Home() {
                         
                         <button className="btn btn-success btn-block" onClick={handleSaveSettings} style={{marginTop:20, background: saveBtnColor || '#27ae60'}}>{btnSaveText}</button>
                     </div>
-                </div>
+                  </div>
+                )}
 
               </div>
             </div>
