@@ -1,0 +1,687 @@
+/* --- 1. GLOBAL SETTINGS --- */
+        * { box-sizing: border-box; }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f4f6f8; /* Abu-abu cerah profesional */
+            padding-top: 100px; /* Jarak dari atas biar gak nempel header */
+            padding-bottom: 40px;
+        }
+
+        /* --- 2. HEADER (NAVBAR) --- */
+        .navbar-custom {
+            background-color: #ffffff;
+            border: none;
+            border-bottom: 1px solid #e1e4e8;
+            min-height: 80px; /* Header tinggi */
+            box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+        }
+
+        .navbar-brand {
+            height: 80px;
+            display: flex;
+            align-items: center;
+            font-weight: 700;
+            font-size: 24px;
+            color: #2c3e50 !important;
+            padding: 0 15px;
+        }
+
+        .brand-icon-svg {
+            width: 32px;
+            height: 32px;
+            margin-right: 12px;
+            fill: #e74c3c;
+        }
+
+        /* --- 3. MAIN BOX STYLE --- */
+        .tool-box {
+            background: #ffffff;
+            border-radius: 8px;
+            border-top: 3px solid #3498db;   /* Garis biru atas */
+            border-bottom: 3px solid #3498db; /* Garis biru bawah */
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08); /* Shadow mantap */
+            width: 100%;
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+
+        /* Header Box */
+        .tool-header {
+            background-color: #ffffff;
+            padding: 25px 20px 5px 20px; /* Bawah cuma 5px biar rapet */
+            text-align: center;
+        }
+
+        .tool-header h2 {
+            margin: 0;
+            font-weight: 700;
+            font-size: 26px;
+            color: #333;
+        }
+
+        /* Deskripsi Rapat */
+        .simple-desc {
+            color: #999;
+            font-size: 15px;
+            margin-top: 8px;    /* Jarak dikit dari judul */
+            margin-bottom: 0;   /* Nempel ke body */
+        }
+
+        /* Body Box */
+        .tool-body {
+            padding: 20px 40px 40px 40px; /* Padding samping luas biar input gak mepet */
+            text-align: center;
+        }
+
+        /* --- 4. INPUT FORM (BOOTSTRAP 3 NATIVE) --- */
+        /* Input Group Besar */
+        .input-group-lg {
+            box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+            border-radius: 6px;
+        }
+
+        .input-lg-custom {
+            height: 60px; /* Tinggi input */
+            font-size: 18px;
+            border: 2px solid #e0e0e0;
+            border-right: none;
+            border-radius: 6px 0 0 6px !important;
+            padding-left: 20px;
+            box-shadow: none;
+        }
+        
+        .input-lg-custom:focus {
+            border-color: #3498db;
+            box-shadow: none;
+            z-index: 2;
+        }
+
+        .btn-lg-custom {
+            height: 60px; /* Tinggi tombol sama */
+            background-color: #3498db;
+            color: #fff;
+            border: 2px solid #3498db;
+            font-weight: 600;
+            font-size: 18px;
+            padding: 0 35px;
+            border-radius: 0 6px 6px 0 !important;
+            transition: background 0.2s;
+        }
+
+        .btn-lg-custom:hover, .btn-lg-custom:focus {
+            background-color: #2980b9;
+            border-color: #2980b9;
+            color: #fff;
+        }
+
+        /* Result Styles */
+        .input-result {
+            background-color: #f0fff4 !important;
+            color: #27ae60;
+            font-weight: 600;
+        }
+        
+        .btn-copy-default { background-color: #2c3e50; border-color: #2c3e50; }
+        .btn-copy-default:hover { background-color: #34495e; border-color: #34495e; }
+        .btn-copy-success { background-color: #27ae60 !important; border-color: #27ae60 !important; }
+
+        /* --- 5. SOCIAL SHARE & EXTRAS --- */
+        #share-area {
+            display: none;
+            margin-top: 30px;
+            padding-top: 25px;
+            border-top: 1px dashed #eee;
+        }
+
+        .social-icons a {
+            display: inline-flex;
+            width: 45px; 
+            height: 45px;
+            align-items: center; 
+            justify-content: center;
+            border-radius: 8px;
+            margin: 0 6px;
+            transition: transform 0.2s;
+            text-decoration: none;
+        }
+        .social-icons a:hover { transform: translateY(-3px); }
+        .social-icons svg { width: 22px; height: 22px; fill: #fff; }
+
+        .bg-wa { background: #25D366; }
+        .bg-fb { background: #1877F2; }
+        .bg-tw { background: #1DA1F2; }
+        .bg-tg { background: #0088cc; }
+
+        .reset-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: #aaa;
+            font-size: 14px;
+            cursor: pointer;
+            border-bottom: 1px dotted #ccc;
+        }
+        .reset-link:hover { color: #3498db; border-color: #3498db; }
+
+        .footer {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            background: #fff;
+            padding: 15px;
+            text-align: center;
+            font-size: 13px;
+            color: #bbb;
+            border-top: 1px solid #eee;
+        }
+
+        /* --- 6. MEDIA QUERIES (PERBAIKAN DESKTOP) --- */
+        
+        /* DESKTOP (Layar Besar) */
+        @media (min-width: 992px) {
+            /* Kita pakai Grid Bootstrap col-md-8, jadi CSS kustom width dihapus biar gak bentrok */
+            .navbar-header {
+                float: none;
+                text-align: center;
+            }
+            .navbar-brand {
+                float: none;
+                display: inline-flex;
+                justify-content: center;
+            }
+        }
+
+        /* TABLET & MOBILE */
+        @media (max-width: 991px) {
+            .tool-body { padding: 20px; } /* Padding samping dikecilin di layar kecil */
+            .btn-lg-custom { padding: 0 20px; }
+        }
+        
+        @media (max-width: 767px) {
+            .navbar-brand { font-size: 20px; }
+        }
+        
+        
+        /* --- CSS TAMBAHAN UNTUK URL LIST --- */
+
+/* Tombol Toggle List */
+.btn-toggle-list {
+    background: transparent;
+    border: 2px solid #3498db;
+    color: #3498db;
+    padding: 10px 25px;
+    border-radius: 50px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    transition: all 0.3s;
+}
+.btn-toggle-list:hover, .btn-toggle-list.active {
+    background: #3498db;
+    color: #fff;
+    text-decoration: none;
+}
+
+/* Tabel Styling */
+.list-box {
+    /* Menggunakan style dasar tool-box tapi tanpa padding besar */
+    background: #ffffff;
+    border-radius: 8px;
+    border-top: 3px solid #3498db;
+    border-bottom: 3px solid #3498db;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    overflow: hidden; /* Penting untuk border radius */
+    margin-bottom: 50px;
+    display: none; /* Default Hidden/Sembunyi */
+}
+
+.table-responsive {
+    border: none; /* Hapus border bawaan bootstrap */
+    margin-bottom: 0;
+}
+
+.table {
+    margin-bottom: 0;
+    white-space: nowrap; /* Agar teks tidak turun baris (bisa scroll) */
+}
+
+/* Hapus Garis Tabel */
+.table > thead > tr > th, 
+.table > tbody > tr > td {
+    border-top: none !important;
+    border-bottom: none !important;
+    vertical-align: middle; /* Konten di tengah vertikal */
+    padding: 15px 20px;
+}
+
+/* Header Tabel */
+.table > thead > tr > th {
+    background-color: #f8f9fa;
+    color: #999;
+    font-size: 12px;
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 1px;
+}
+
+/* Kolom Gambar/Icon */
+.img-thumb {
+    width: 35px;
+    height: 35px;
+    background-color: #e8f4fd;
+    color: #3498db;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 18px;
+}
+
+/* Link Styling */
+.short-link-text {
+    color: #3498db;
+    font-weight: 600;
+    font-size: 15px;
+}
+.ori-link-text {
+    color: #aaa;
+    font-size: 13px;
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: inline-block;
+}
+
+/* Action Buttons (Icon Only) */
+.btn-action-icon {
+    border: none;
+    background: transparent;
+    color: #95a5a6;
+    padding: 5px;
+    font-size: 16px;
+    transition: color 0.2s;
+}
+.btn-action-icon:hover { color: #3498db; }
+.btn-del:hover { color: #e74c3c; } /* Merah saat hover delete */
+.btn-copy-list.copied { color: #27ae60; } /* Hijau saat tersalin */
+
+/* --- CSS AREA SETTINGS --- */
+
+/* Tombol Toggle Settings (Abu-abu biar beda sama list) */
+.btn-toggle-settings {
+    background: transparent;
+    border: 2px solid #95a5a6;
+    color: #95a5a6;
+    padding: 10px 25px;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 13px;
+    transition: all 0.3s;
+}
+.btn-toggle-settings:hover, .btn-toggle-settings.active {
+    background: #95a5a6;
+    color: #fff;
+    text-decoration: none;
+    border-color: #95a5a6;
+}
+
+/* Box Settings (POLOS TANPA GARIS ATAS/BAWAH) */
+.settings-box {
+    background: #ffffff;
+    border-radius: 8px;
+    /* Tidak ada border-top atau border-bottom warna */
+    border: 1px solid #f0f0f0; /* Garis tipis halus saja */
+    box-shadow: 0 5px 20px rgba(0,0,0,0.05); /* Bayangan soft */
+    padding: 30px;
+    margin-bottom: 80px; /* Jarak ke footer */
+    display: none; /* Hidden Default */
+    
+}
+
+.settings-title {
+    margin-top: 0;
+    font-weight: 700;
+    color: #333;
+    font-size: 20px;
+}
+
+.control-label {
+    font-weight: 600;
+    color: #555;
+    font-size: 13px;
+    margin-bottom: 8px;
+}
+
+/* Inputan di Settings */
+.settings-box .form-control {
+    border-radius: 4px;
+    box-shadow: none;
+    border-color: #ddd;
+    font-size: 14px;
+}
+.settings-box .form-control:focus {
+    border-color: #95a5a6; /* Fokus warna abu */
+}
+.settings-box .input-group-addon {
+    background: #f9f9f9;
+    border-color: #ddd;
+    color: #777;
+}
+
+/* Tombol Simpan */
+.btn-save-settings {
+    background-color: #2c3e50;
+    border-color: #2c3e50;
+    padding: 10px 20px;
+    font-weight: 600;
+    font-size: 14px;
+    border-radius: 4px;
+    transition: background 0.2s;
+}
+.btn-save-settings:hover {
+    background-color: #34495e;
+}
+
+/* --- CSS TOMBOL GEAR & SETTINGS --- */
+
+/* Tombol Gear Berputar */
+.btn-gear-toggle {
+    background: #fff;
+    border: 1px solid #eee;
+    color: #bdc3c7; /* Abu-abu soft */
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    font-size: 24px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    transition: all 0.4s ease;
+    outline: none !important;
+}
+
+/* Efek Hover: Putar & Berubah Warna */
+.btn-gear-toggle:hover, .btn-gear-toggle.active {
+    background: #fff;
+    color: #3498db; /* Jadi Biru */
+    transform: rotate(180deg); /* Mutar */
+    box-shadow: 0 8px 20px rgba(52, 152, 219, 0.2);
+    border-color: #3498db;
+}
+
+/* Box Settings */
+.settings-panel {
+    background: #ffffff;
+    border-radius: 7px;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.08);
+    margin-bottom: 80px;
+    display: none; /* Hidden */
+    overflow: hidden;
+    border: 1px solid #f5f5f5;
+    
+}
+
+.settings-header {
+    background: #fdfdfd;
+    padding: 15px 25px;
+    border-bottom: 1px solid #eee;
+    color: #555;
+}
+.settings-header h4 { margin: 0; font-weight: 700; font-size: 16px; }
+
+.settings-body {
+    padding: 25px;
+}
+
+/* Form Styles */
+.settings-panel label {
+    font-size: 12px;
+    text-transform: uppercase;
+    color: #999;
+    letter-spacing: 0.5px;
+    margin-bottom: 5px;
+}
+
+.settings-panel .form-control {
+    box-shadow: none;
+    border-color: #eee;
+    background: #fafafa;
+    height: 45px; /* Input agak tinggi */
+}
+.settings-panel textarea.form-control { height: auto; }
+
+.settings-panel .form-control:focus {
+    background: #fff;
+    border-color: #3498db;
+}
+
+.settings-panel .input-group-addon {
+    background: #fff;
+    border-color: #eee;
+    color: #aaa;
+}
+
+.help-block { font-size: 11px; margin-bottom: 0; }
+
+/* Tombol Simpan */
+.btn-save {
+    background-color: #34495e;
+    color: #fff;
+    font-weight: 700;
+    height: 50px;
+    border-radius: 6px;
+    letter-spacing: 1px;
+    transition: background 0.3s;
+}
+.btn-save:hover { background-color: #2c3e50; color: #fff; }
+
+.settings-panel {
+    background: #ffffff;
+    border-radius: 8px;
+    /* UBAH INI: Shadow sangat tipis (0.05) */
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05); 
+    border: 1px solid #f0f0f0;
+    margin-bottom: 30px; 
+    display: none; 
+    overflow: hidden;
+}
+/* Tambahkan ini untuk Textarea */
+.settings-panel textarea.form-control {
+    resize: vertical; /* KUNCI: Hanya bisa geser ke bawah */
+    min-height: 80px;
+}
+/* 1. Ganti bagian BODY ini */
+
+
+    /* 2. Update bagian Footer biar warnanya solid (tidak transparan) */
+    .footer {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        
+        /* Pastikan background putih tebal biar gak tembus pandang */
+        background: #ffffff; 
+        
+        padding: 15px;
+        text-align: center;
+        font-size: 12px;
+        color: #ccc;
+        border-top: 1px solid #f5f5f5;
+        
+        /* Pastikan dia selalu di lapisan paling atas */
+        z-index: 9999; 
+    }
+    /* 1. UPDATE HEADER (Ada Garis Bawah) */
+    .navbar-custom {
+        background-color: #ffffff;
+        
+        /* INI GARISNYA: Border bawah abu-abu jelas */
+        border-bottom: 1px solid #ccc; 
+        
+        /* Tambahan bayangan biar makin tegas garisnya */
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        
+        min-height: 70px;
+    }
+
+    /* 2. UPDATE FOOTER (Ada Garis Atas) */
+    .footer {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        background: #ffffff;
+        padding: 15px;
+        text-align: center;
+        font-size: 12px;
+        color: #888;
+        
+        /* INI GARISNYA: Border atas abu-abu jelas */
+        border-top: 1px solid #ccc;
+        
+        /* Pastikan footer di paling atas lapisan */
+        z-index: 9999; 
+    }
+    /* --- CSS PAGINATION --- */
+.pagination-area {
+    padding: 15px 20px;
+    background-color: #fcfcfc; /* Warna agak beda dikit biar misah sama tabel */
+    border-top: 1px solid #eee; /* Garis pemisah tipis */
+    display: flex;
+    justify-content: space-between; /* Prev kiri, Next kanan */
+    align-items: center;
+}
+
+.btn-nav {
+    border-radius: 20px; /* Tombol lonjong */
+    padding: 5px 15px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #555;
+    background: #fff;
+    border: 1px solid #ddd;
+    transition: all 0.2s;
+}
+
+.btn-nav:hover {
+    background: #3498db;
+    color: #fff;
+    border-color: #3498db;
+}
+
+/* Kalo tombol mati (disabled) */
+.btn-nav:disabled {
+    background: #f9f9f9;
+    color: #ccc;
+    cursor: not-allowed;
+    border-color: #eee;
+}
+
+.page-count {
+    font-size: 12px;
+    color: #aaa;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+/* =========================================
+       CSS KHUSUS RESPONSIVE (MEDIA QUERIES)
+       Agar tampilan rapi di semua ukuran layar
+       ========================================= */
+
+    /* 1. LAYAR TABLET & DESKTOP KECIL (Lebar 768px - 991px) */
+    @media (min-width: 768px) and (max-width: 991px) {
+        .box-container {
+            width: 90%; /* Lebarkan box sedikit di tablet */
+        }
+        .tool-body, .settings-body {
+            padding: 30px; /* Kurangi padding biar muat */
+        }
+    }
+
+    /* 2. LAYAR HP / MOBILE (Lebar di bawah 767px) */
+    @media (max-width: 767px) {
+        
+        /* --- A. Layout Body & Header --- */
+        body {
+            /* Header lebih pendek di HP */
+            padding-bottom: 100px; /* Ruang footer cukup */
+        }
+        .navbar-brand {
+            font-size: 20px;       /* Kecilkan font logo */
+        }
+        .brand-icon-svg {
+            width: 24px; height: 24px; /* Kecilkan ikon logo */
+        }
+
+        /* --- B. Box Utama (Shorten, List, Settings) --- */
+        .tool-box, .list-box, .settings-panel {
+            margin-bottom: 20px;   /* Kurangi jarak antar box */
+            border-radius: 6px;    /* Radius sudut lebih kecil */
+        }
+
+        .tool-header, .settings-header {
+            padding: 15px;         /* Header box lebih rapat */
+        }
+        
+        .tool-header h2, .settings-header h4 {
+            font-size: 18px;       /* Judul box tidak kegedean */
+        }
+
+        .tool-body, .settings-body {
+            padding: 20px 15px;    /* Padding dalam box diperkecil */
+        }
+
+        /* --- C. Form Input & Tombol Utama --- */
+        .input-lg-custom {
+            height: 45px;          /* Input tidak terlalu tinggi di HP */
+            font-size: 14px;       /* Font input pas */
+        }
+        
+        .btn-lg-custom {
+            height: 45px;          /* Tinggi tombol samakan dengan input */
+            font-size: 14px;
+            padding: 0 15px;       /* Padding tombol dikurangi */
+        }
+
+        /* --- D. Tabel URL List --- */
+        .table > thead > tr > th {
+            font-size: 11px;       /* Header tabel lebih kecil */
+            padding: 10px;
+        }
+        .table > tbody > tr > td {
+            font-size: 12px;       /* Isi tabel lebih ringkas */
+            padding: 10px;
+        }
+        .img-thumb {
+            width: 30px; height: 30px; font-size: 14px; /* Ikon di tabel kecil */
+        }
+        
+        /* Teks Link di Tabel */
+        .short-link-text { font-size: 13px; }
+        .ori-link-text { max-width: 100px; } /* Potong link panjang biar gak lebar */
+
+        /* --- E. Tombol Pagination --- */
+        .pagination-area {
+            padding: 10px;
+        }
+        .btn-nav {
+            font-size: 11px; padding: 4px 10px;
+        }
+
+        /* --- F. Footer --- */
+        .footer {
+            font-size: 11px;       /* Teks footer kecil */
+            padding: 10px;
+        }
+    }
+
+    /* 3. LAYAR SANGAT KECIL (iPhone SE / Galaxy Fold - Lebar < 360px) */
+    @media (max-width: 359px) {
+        .btn-lg-custom {
+            padding: 0 10px;       /* Tombol lebih irit tempat */
+            font-size: 13px;
+        }
+        .navbar-brand {
+            font-size: 18px;
+        }
+    }
