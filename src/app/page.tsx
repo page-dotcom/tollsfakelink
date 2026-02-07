@@ -3,7 +3,12 @@
 import { useState, useEffect, FormEvent } from 'react';
 import { supabase } from '@/data/supabase';
 
-const MY_PIN = process.env.MY_SECRET_PIN;
+
+    // 2. Ambil PIN dari Environment Variable Vercel
+    const MY_PIN = process.env.MY_SECRET_PIN;
+
+
+
 const ITEMS_PER_PAGE = 10; // Batas 5 Link per Halaman
 
 export default function Home() {
