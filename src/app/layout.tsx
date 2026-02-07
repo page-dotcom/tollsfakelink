@@ -75,8 +75,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        {/* Bootstrap 3 CSS CDN (Sesuai HTML kamu) */}
+        {/* INI KUNCI AGAR TAMPILAN KAMU BENAR (BOOTSTRAP 3) */}
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" />
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet" />
       </head>
       <body>
         {children}
