@@ -394,7 +394,7 @@ export default function Home() {
                 </div>
 
                 {/* SETTINGS AREA */}
-                <div className="settings-panel" style={{display: showSettings ? 'block' : 'none'}}>
+                <div className="settings-panel" style={{background:'#111', color:'#fff', padding:30, borderRadius:3, marginTop:20, display: showSettings ? 'block' : 'none'}}>
                     <h4>Konfigurasi</h4>
                     <div style={{marginTop:15}}>
                         <label>Site Name</label>
