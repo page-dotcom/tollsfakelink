@@ -1,3 +1,4 @@
+import './globals.css';
 import type { Metadata, Viewport } from "next";
 
 // 1. SETTING VIEWPORT (Warna Status Bar HP)
@@ -73,6 +74,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <head>
+        {/* Bootstrap 3 CSS CDN (Sesuai HTML kamu) */}
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" />
+      </head>
       {/* Style Global Sederhana untuk memastikan background hitam */}
       <body style={{ margin: 0, padding: 0, backgroundColor: '#050505', color: 'white' }}>
         {children}
