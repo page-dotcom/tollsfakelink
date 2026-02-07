@@ -1,142 +1,368 @@
 'use client';
-import { useState } from 'react';
+
+import { useState, useEffect, FormEvent } from 'react';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+
+// PIN Kamu (Sementara Hardcode karena belum ada Login System)
+const MY_PIN = "Yasue1998"; 
 
 export default function Home() {
-  const [url, setUrl] = useState('');
-  const [result, setResult] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const supabase = createClientComponentClient();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setResult(null);
+  // --- STATE MANAGEMENT (Pengganti Variabel JS Biasa) ---
+  const [siteName, setSiteName] = useState("ShortCuts - Personal Tool");
+  const [longUrl, setLongUrl] = useState("");
+  const [shortUrl, setShortUrl] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [showResult, setShowResult] = useState(false);
+  
+  const [showList, setShowList] = useState(false);
+  const [links, setLinks] = useState<any[]>([]);
+  
+  const [showSettings, setShowSettings] = useState(false);
+  const [settings, setSettings] = useState({
+    site_name: 'ShortCuts',
+    offer_url: '',
+    histats_id: ''
+  });
 
+  // --- 1. LOAD DATA SAAT WEB DIBUKA ---
+  useEffect(() => {
+    // Ambil Settings (Judul Web, dll)
+    async function loadSettings() {
+      const { data } = await supabase.from('settings').select('*').single();
+      if (data) {
+        setSettings(data);
+        setSiteName(data.site_name);
+        document.title = data.site_name; // Ubah Judul Tab Browser
+      }
+    }
+
+    // Ambil Last Link dari LocalStorage (Fitur JS lama kamu)
+    const last = localStorage.getItem('lastLink');
+    if (last) {
+      setShortUrl(last);
+      setShowResult(true);
+    }
+
+    loadSettings();
+    fetchLinks(); // Ambil data tabel
+  }, []);
+
+  // --- 2. FUNGSI AMBIL DATA LIST ---
+  const fetchLinks = async () => {
     try {
-      const res = await fetch('/api/save-link', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url }),
+      // Panggil API Vercel yang sudah kita buat
+      const res = await fetch('/api/links', {
+        headers: { 'Authorization': `Bearer ${MY_PIN}` }
       });
-
       const data = await res.json();
       if (data.success) {
-        setResult(`${window.location.origin}/${data.shortId}`);
-        setUrl('');
-      } else {
-        alert('Gagal: ' + data.error);
+        setLinks(data.data);
       }
     } catch (err) {
-      alert('Terjadi kesalahan koneksi');
-    } finally {
-      setLoading(false);
+      console.error("Gagal ambil list", err);
     }
   };
 
+  // --- 3. FUNGSI SHORTEN (Pengganti Math.random) ---
+  const handleShorten = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!longUrl) return;
+
+    setIsLoading(true);
+    
+    // Animasi Progress Bar (Simulasi dikit biar keren)
+    let p = 0;
+    const interval = setInterval(() => {
+      p += 5;
+      setProgress(p);
+      if (p >= 90) clearInterval(interval);
+    }, 50);
+
+    try {
+      // HIT API VERCEL REAL
+      const res = await fetch('/api/save-link', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${MY_PIN}`
+        },
+        body: JSON.stringify({ url: longUrl })
+      });
+
+      const data = await res.json();
+      
+      clearInterval(interval);
+      setProgress(100);
+
+      setTimeout(() => {
+        if (data.success) {
+          const resultLink = `https://tollsfakelink.vercel.app/${data.shortId}`; // Ganti domain kamu
+          setShortUrl(resultLink);
+          localStorage.setItem('lastLink', resultLink);
+          setShowResult(true);
+          setIsLoading(false);
+          setLongUrl("");
+          fetchLinks(); // Refresh tabel otomatis
+        } else {
+          alert("Gagal: " + data.error);
+          setIsLoading(false);
+        }
+      }, 500);
+
+    } catch (err) {
+      alert("Error koneksi");
+      setIsLoading(false);
+    }
+  };
+
+  // --- 4. FUNGSI COPY ---
+  const copyToClipboard = (text: string, btnId?: string) => {
+    navigator.clipboard.writeText(text);
+    if(btnId) {
+      const btn = document.getElementById(btnId);
+      if(btn) {
+        btn.innerText = "COPIED!";
+        setTimeout(() => btn.innerText = "COPY", 1500);
+      }
+    } else {
+      alert("Link disalin!");
+    }
+  };
+
+  // --- 5. FUNGSI HAPUS ---
+  const handleDelete = async (id: string) => {
+    if(!confirm("Hapus link ini?")) return;
+    
+    await fetch('/api/links', {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${MY_PIN}` },
+      body: JSON.stringify({ id })
+    });
+    fetchLinks(); // Refresh tabel
+  };
+
+  // --- 6. FUNGSI SAVE SETTINGS ---
+  const saveSettings = async () => {
+    // Kita pakai Supabase client langsung biar cepat (karena auth di-skip)
+    const { error } = await supabase
+      .from('settings')
+      .update({
+        site_name: settings.site_name,
+        offer_url: settings.offer_url,
+        histats_id: settings.histats_id
+      })
+      .eq('id', 1);
+
+    if (!error) {
+      alert("Pengaturan Berhasil Disimpan!");
+      document.title = settings.site_name;
+    } else {
+      alert("Gagal simpan setting.");
+    }
+  };
+
+  // --- RENDER TAMPILAN (HTML ASLI KAMU) ---
   return (
-    <main style={{ 
-      backgroundColor: '#000', 
-      color: '#fff', 
-      minHeight: '100vh', 
-      display: 'flex', 
-      alignItems: 'center', 
-      justifyContent: 'center',
-      fontFamily: 'sans-serif',
-      padding: '20px'
-    }}>
-      <div style={{ 
-        width: '100%', 
-        maxWidth: '450px', 
-        padding: '30px', 
-        border: '1px solid #333', 
-        borderRadius: '12px',
-        backgroundColor: '#111'
-      }}>
-        <h1 style={{ fontSize: '24px', marginBottom: '10px', textAlign: 'center' }}>URL Shortener</h1>
-        <p style={{ color: '#888', textAlign: 'center', marginBottom: '25px', fontSize: '14px' }}>
-          Masukkan link tujuan, sistem akan buatkan ID acak.
-        </p>
-
-        <form onSubmit={handleSubmit}>
-          <input
-            type="url"
-            placeholder="Tempel link di sini (https://...)"
-            value={url}
-            onChange={(e) => setUrl(e.target.value)}
-            required
-            style={{ 
-              width: '100%', 
-              padding: '12px', 
-              marginBottom: '15px', 
-              borderRadius: '6px', 
-              border: '1px solid #333', 
-              backgroundColor: '#000',
-              color: '#fff',
-              outline: 'none',
-              boxSizing: 'border-box'
-            }}
-          />
-          <button 
-            type="submit" 
-            disabled={loading}
-            style={{ 
-              width: '100%', 
-              padding: '12px', 
-              backgroundColor: '#fff', 
-              color: '#000', 
-              border: 'none', 
-              borderRadius: '6px', 
-              fontWeight: 'bold',
-              cursor: loading ? 'not-allowed' : 'pointer',
-              opacity: loading ? 0.7 : 1
-            }}
-          >
-            {loading ? 'Sedang Memproses...' : 'Buat Shortlink'}
-          </button>
-        </form>
-
-        {result && (
-          <div style={{ 
-            marginTop: '25px', 
-            padding: '15px', 
-            backgroundColor: '#1a1a1a', 
-            border: '1px dashed #444', 
-            borderRadius: '8px',
-            textAlign: 'center'
-          }}>
-            <p style={{ margin: '0 0 10px 0', fontSize: '14px', color: '#aaa' }}>Link Kamu Berhasil Dibuat:</p>
-            <div style={{ 
-              display: 'flex', 
-              gap: '10px', 
-              alignItems: 'center', 
-              justifyContent: 'center',
-              wordBreak: 'break-all',
-              backgroundColor: '#000',
-              padding: '10px',
-              borderRadius: '4px'
-            }}>
-              <span style={{ color: '#00ff00', fontSize: '14px' }}>{result}</span>
-            </div>
-            <button 
-              onClick={() => {
-                navigator.clipboard.writeText(result);
-                alert('Tersalin!');
-              }}
-              style={{ 
-                marginTop: '15px',
-                background: 'none',
-                border: '1px solid #555',
-                color: '#ccc',
-                padding: '5px 15px',
-                borderRadius: '4px',
-                cursor: 'pointer',
-                fontSize: '12px'
-              }}
-            >
-              Salin Link
-            </button>
+    <>
+      <nav className="navbar navbar-custom navbar-fixed-top">
+        <div className="container-fluid">
+          <div className="navbar-header">
+            <a className="navbar-brand" href="#">
+              <svg className="brand-icon-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-3.31-2.69-6-6-6c-3.31,0-6,2.69-6,6c0,2.22,1.21,4.15,3,5.19V19 c-2.97-1.35-5-4.42-5-8c0-4.97,4.03-9,9-9s9,4.03,9,9c0,1.86-0.55,3.61-1.5,5.1l-1.45-1.45C18.78,14.16,19.04,13.57,19.14,12.94z M9.64,12.56L7.52,14.68C7.36,14.54,7.18,14.4,7,14.25V17c1.32-0.84,2.2-2.31,2.2-4C9.2,12.89,9.36,12.75,9.64,12.56z M12,8 c2.21,0,4,1.79,4,4s-1.79,4-4,4s-4-1.79-4-4S9.79,8,12,8z"/>
+                <circle cx="6" cy="18" r="2"/><circle cx="18" cy="18" r="2"/>
+                <path d="M9.41 16.59L12 14l2.59 2.59L16 15.17l-4-4-4 4z"/> 
+                <path d="M17.88,11.36l1.3,1.3c0.11-0.78,0.11-1.59-0.03-2.39L17.88,11.36z"/>
+              </svg>
+              {siteName}
+            </a>
           </div>
-        )}
+        </div>
+      </nav>
+
+      <div className="container">
+        <div className="row">
+          <div className="col-md-8 col-md-offset-2 col-sm-10 col-sm-offset-1 col-xs-12">
+            
+            <div className="tool-box">
+              <div className="tool-header">
+                <h2 id="box-title">{showResult ? "Link Ready!" : "Shorten URL"}</h2>
+                {!showResult && !isLoading && <p className="simple-desc">Paste long URL below</p>}
+              </div>
+
+              <div className="tool-body">
+                
+                {/* FORM VIEW */}
+                {!showResult && !isLoading && (
+                  <form onSubmit={handleShorten}>
+                    <div className="input-group input-group-lg">
+                      <input 
+                        type="url" 
+                        className="form-control input-lg-custom" 
+                        placeholder="https://..." 
+                        required 
+                        value={longUrl}
+                        onChange={(e) => setLongUrl(e.target.value)}
+                      />
+                      <span className="input-group-btn">
+                        <button className="btn btn-lg-custom" type="submit">SHORTEN</button>
+                      </span>
+                    </div>
+                  </form>
+                )}
+
+                {/* LOADING VIEW */}
+                {isLoading && (
+                  <div id="loading-area">
+                    <h2 style={{margin:'10px 0', color:'#3498db', fontWeight:700}}>{progress}%</h2>
+                    <small style={{color:'#bbb', letterSpacing:'1px'}}>PROCESSING LINK...</small>
+                  </div>
+                )}
+
+                {/* RESULT VIEW */}
+                {showResult && (
+                  <div id="result-view">
+                    <div className="input-group input-group-lg">
+                      <input type="text" className="form-control input-lg-custom input-result" value={shortUrl} readOnly />
+                      <span className="input-group-btn">
+                        <button className="btn btn-lg-custom btn-copy-default" id="mainCopyBtn" onClick={() => copyToClipboard(shortUrl, 'mainCopyBtn')} type="button">COPY</button>
+                      </span>
+                    </div>
+                    <span className="reset-link" onClick={() => { setShowResult(false); setLongUrl(""); }}>Shorten another link</span>
+                  </div>
+                )}
+
+                {/* SHARE AREA (Muncul kalau ada hasil) */}
+                {showResult && (
+                  <div id="share-area">
+                    <div className="social-icons">
+                      <a href={`https://api.whatsapp.com/send?text=${shortUrl}`} target="_blank" className="bg-wa"><svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></a>
+                      <a href={`https://www.facebook.com/sharer/sharer.php?u=${shortUrl}`} target="_blank" className="bg-fb"><svg viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></a>
+                      <a href={`https://twitter.com/intent/tweet?url=${shortUrl}`} target="_blank" className="bg-tw"><svg viewBox="0 0 24 24"><path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/></svg></a>
+                      <a href={`https://t.me/share/url?url=${shortUrl}`} target="_blank" className="bg-tg"><svg viewBox="0 0 24 24"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg></a>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* TOGGLE LIST BUTTON */}
+            <div className="text-center">
+              <button type="button" className="btn-toggle-list" onClick={() => setShowList(!showList)}>
+                <span className="glyphicon glyphicon-list-alt"></span> {showList ? 'HIDE LIST' : 'MY URL LIST'}
+              </button>
+            </div>
+
+            {/* LIST AREA (Tabel Data) */}
+            {showList && (
+              <div className="list-box" style={{display:'block'}}>
+                <div className="table-responsive">
+                  <table className="table table-hover">
+                    <thead>
+                      <tr>
+                        <th>Image</th>
+                        <th>Short Link</th>
+                        <th>Original URL</th>
+                        <th>Clicks</th>
+                        <th>Date</th>
+                        <th className="text-right">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {links.length === 0 ? (
+                         <tr><td colSpan={6} className="text-center">Belum ada link dibuat.</td></tr>
+                      ) : (
+                        links.map((link) => (
+                          <tr key={link.id}>
+                            <td>
+                              <div className="img-thumb" style={{background: '#e1f5fe', color: '#03a9f4'}}>
+                                {link.url.substring(8,9).toUpperCase()}
+                              </div> 
+                            </td>
+                            <td>
+                              <div className="short-link-text">{link.id}</div>
+                            </td>
+                            <td>
+                              <span className="ori-link-text">{link.url}</span>
+                            </td>
+                            <td>
+                              <span className="badge" style={{background:'#3498db'}}>{link.clicks || 0}</span>
+                            </td>
+                            <td style={{color:'#888', fontSize:'13px'}}>
+                              {new Date(link.created_at).toLocaleDateString()}
+                            </td>
+                            <td className="text-right">
+                              <button className="btn-action-icon" onClick={() => copyToClipboard(`https://tollsfakelink.vercel.app/${link.id}`)}>
+                                <span className="glyphicon glyphicon-copy"></span>
+                              </button>
+                              <button className="btn-action-icon btn-del" onClick={() => handleDelete(link.id)}>
+                                <span className="glyphicon glyphicon-trash"></span>
+                              </button>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {/* TOGGLE SETTINGS */}
+            <div className="text-center" style={{marginTop: '30px', marginBottom: '20px'}}>
+              <button type="button" className={`btn-gear-toggle ${showSettings ? 'active' : ''}`} onClick={() => setShowSettings(!showSettings)}>
+                <span className="glyphicon glyphicon-cog"></span>
+              </button>
+              <div style={{fontSize:'12px', color:'#ccc', marginTop:'5px'}}>Settings</div>
+            </div>
+
+            {/* SETTINGS PANEL */}
+            {showSettings && (
+              <div className="settings-panel" style={{display:'block'}}>
+                <div className="settings-header">
+                  <h4><span className="glyphicon glyphicon-wrench" style={{fontSize:'16px'}}></span> Konfigurasi Situs</h4>
+                </div>
+                <div className="settings-body">
+                  <div className="form-group">
+                    <label>Site Name</label>
+                    <div className="input-group">
+                      <span className="input-group-addon"><i className="glyphicon glyphicon-home"></i></span>
+                      <input type="text" className="form-control" value={settings.site_name} onChange={(e) => setSettings({...settings, site_name: e.target.value})} />
+                    </div>
+                  </div>
+                  <div className="form-group">
+                    <label>URL Offer / Redirect Traffic</label>
+                    <div className="input-group">
+                      <span className="input-group-addon"><i className="glyphicon glyphicon-share-alt"></i></span>
+                      <textarea className="form-control" rows={2} value={settings.offer_url} onChange={(e) => setSettings({...settings, offer_url: e.target.value})}></textarea>
+                    </div>
+                  </div>
+                  <div className="form-group">
+                    <label>Histats / Analytics ID</label>
+                    <div className="input-group">
+                      <span className="input-group-addon"><i className="glyphicon glyphicon-stats"></i></span>
+                      <input type="number" className="form-control" value={settings.histats_id} onChange={(e) => setSettings({...settings, histats_id: e.target.value})} />
+                    </div>
+                  </div>
+                  <div style={{marginTop: '25px'}}>
+                    <button type="button" className="btn btn-block" style={{background:'#27ae60', color:'#fff'}} onClick={saveSettings}>
+                      SIMPAN PENGATURAN
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+          </div>
+        </div>
       </div>
-    </main>
+
+      <div className="footer text-center" style={{padding:'20px', color:'#999', fontSize:'12px'}}>
+        &copy; 2026 {siteName}. All Rights Reserved.
+      </div>
+    </>
   );
 }
