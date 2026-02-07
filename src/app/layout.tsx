@@ -48,7 +48,7 @@ export async function generateMetadata(): Promise<Metadata> {
       type: "website",
       images: [
         {
-          url: '/og-image.jpg',
+          url: 'https://i.ibb.co.com/bj8MRG2B/blog2-F63f7bfe24890332fa0e7bc492-Fimgac144d-e0eb-bdf4-4810-38bbad0b28d.png',
           width: 1200,
           height: 630,
           alt: `${siteName} Preview`,
@@ -61,7 +61,7 @@ export async function generateMetadata(): Promise<Metadata> {
       card: "summary_large_image",
       title: siteName,
       description: "Private URL Shortener Service.",
-      images: ['/og-image.jpg'],
+      images: ['https://i.ibb.co.com/bj8MRG2B/blog2-F63f7bfe24890332fa0e7bc492-Fimgac144d-e0eb-bdf4-4810-38bbad0b28d.png'],
     },
 
     // -- ROBOTS --
