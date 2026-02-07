@@ -4,46 +4,48 @@ import { useState, useEffect, FormEvent } from 'react';
 import { supabase } from '@/data/supabase';
 
 export default function Home() {
-  // --- AUTH STATE ---
+  // --- AUTH ---
   const [session, setSession] = useState<any>(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loginLoading, setLoginLoading] = useState(false);
 
-  // --- APP STATE ---
+  // --- SETTINGS (Termasuk Offer Active) ---
   const [settings, setSettings] = useState({
     site_name: 'ShortCuts',
     offer_url: '',
+    offer_active: false, // Default mati
     histats_id: ''
   });
 
+  // --- VIEW STATE ---
   const [viewState, setViewState] = useState<'form' | 'loading' | 'result'>('form');
   const [progress, setProgress] = useState(0);
   const [longUrl, setLongUrl] = useState("");
   const [shortUrl, setShortUrl] = useState("");
   
+  // --- DATA ---
   const [links, setLinks] = useState<any[]>([]);
+  
+  // --- TOGGLES (Default False biar rapi) ---
   const [showList, setShowList] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
 
-  // PAGINATION
-  const [currentPage, setCurrentPage] = useState(1);
-  const ITEMS_PER_PAGE = 5;
-
-  // Edit & Feedback
+  // --- EDIT & FEEDBACK ---
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editUrlVal, setEditUrlVal] = useState("");
   const [btnCopyText, setBtnCopyText] = useState("COPY");
   const [btnSaveText, setBtnSaveText] = useState("SIMPAN PENGATURAN");
-  
-  // INI YANG KEMARIN ERROR (SUDAH SAYA TAMBAHKAN)
   const [saveBtnColor, setSaveBtnColor] = useState("");
-
-  // Toast
   const [toast, setToast] = useState<{msg: string, type: 'success'|'error'|''} | null>(null);
+
+  // --- PAGINATION ---
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 10;
 
   // --- INIT ---
   useEffect(() => {
+    // Cek Session Supabase
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       if (session) loadData();
@@ -57,6 +59,7 @@ export default function Home() {
     return () => subscription.unsubscribe();
   }, []);
 
+  // Timer Toast
   useEffect(() => {
     if (toast) {
       const timer = setTimeout(() => setToast(null), 3000);
@@ -69,7 +72,7 @@ export default function Home() {
     fetchLinks();
   }
 
-  // --- AUTH ---
+  // --- LOGIN LOGIC ---
   const handleLogin = async (e: FormEvent) => {
     e.preventDefault();
     setLoginLoading(true);
@@ -180,6 +183,7 @@ export default function Home() {
     await supabase.from('settings').update({
       site_name: settings.site_name,
       offer_url: settings.offer_url,
+      offer_active: settings.offer_active, // SIMPAN STATUS CHECKBOX
       histats_id: settings.histats_id
     }).eq('id', 1);
     
@@ -197,7 +201,7 @@ export default function Home() {
     catch { return ""; }
   };
 
-  // --- LOGIKA PAGINATION ---
+  // --- PAGINATION LOGIC ---
   const indexOfLastItem = currentPage * ITEMS_PER_PAGE;
   const indexOfFirstItem = indexOfLastItem - ITEMS_PER_PAGE;
   const currentItems = links.slice(indexOfFirstItem, indexOfLastItem);
@@ -209,12 +213,12 @@ export default function Home() {
   // --- RENDER ---
   return (
     <>
-      {/* TOAST */}
+      {/* TOAST NOTIFIKASI */}
       {toast && (
         <div style={{
           position: 'fixed', top: '20px', left: '50%', transform: 'translateX(-50%)',
           background: toast.type === 'success' ? '#27ae60' : '#e74c3c',
-          color: '#fff', padding: '10px 20px', borderRadius: '50px',
+          color: '#fff', padding: '10px 25px', borderRadius: '50px',
           boxShadow: '0 5px 15px rgba(0,0,0,0.3)', zIndex: 99999, fontWeight: 600, fontSize: '13px'
         }}>
           {toast.msg}
@@ -223,25 +227,21 @@ export default function Home() {
 
       {/* LOGIN POPUP */}
       {!session && (
-        <div style={{
-          position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
-          background: '#fff', zIndex: 10000, display: 'flex', justifyContent: 'center', alignItems: 'center'
-        }}>
+        <div style={{position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: '#fff', zIndex: 10000, display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
           <div style={{padding: '30px', width: '90%', maxWidth: '350px', textAlign:'center', border:'1px solid #eee', borderRadius:'10px', boxShadow:'0 10px 30px rgba(0,0,0,0.1)'}}>
             <h3 style={{fontWeight:'bold', color:'#333', marginTop:0}}>LOGIN ADMIN</h3>
-            <p style={{color:'#999', fontSize:'13px'}}>Masukkan akun administrator Anda.</p>
             <form onSubmit={handleLogin} style={{marginTop:'25px'}}>
               <input type="email" placeholder="Email" className="form-control input-lg" style={{marginBottom:'15px'}} value={email} onChange={e => setEmail(e.target.value)} required />
               <input type="password" placeholder="Password" className="form-control input-lg" style={{marginBottom:'25px'}} value={password} onChange={e => setPassword(e.target.value)} required />
-              <button type="submit" disabled={loginLoading} className="btn btn-primary btn-block btn-lg" style={{fontWeight:'bold'}}>
-                {loginLoading ? 'Checking...' : 'MASUK DASHBOARD'}
+              <button type="submit" disabled={loginLoading} className="btn btn-primary btn-block btn-lg">
+                {loginLoading ? 'Loading...' : 'MASUK DASHBOARD'}
               </button>
             </form>
           </div>
         </div>
       )}
 
-      {/* DASHBOARD */}
+      {/* MAIN DASHBOARD */}
       {session && (
         <>
           <nav className="navbar navbar-custom navbar-fixed-top">
@@ -266,6 +266,7 @@ export default function Home() {
             <div className="row">
               <div className="col-md-8 col-md-offset-2 col-sm-10 col-sm-offset-1 col-xs-12">
                 
+                {/* TOOLBOX */}
                 <div className="tool-box">
                   <div className="tool-header">
                     <h2 id="box-title">{editingId ? "Edit URL" : (viewState === 'result' ? "Link Ready!" : "Shorten URL")}</h2>
@@ -273,7 +274,7 @@ export default function Home() {
                   </div>
 
                   <div className="tool-body">
-                    {/* FORM */}
+                    {/* FORM SHORTEN */}
                     {!editingId && viewState === 'form' && (
                       <div id="form-view">
                         <form onSubmit={handleShorten}>
@@ -306,7 +307,6 @@ export default function Home() {
                         </div>
                         <span className="reset-link" onClick={() => { setViewState('form'); setLongUrl(""); }} style={{display:'block', marginTop:15, textAlign:'center', cursor:'pointer', color:'#999'}}>Shorten another link</span>
                         
-                        {/* SOSMED (Hardcoded Style biar muncul) */}
                         <div style={{display:'flex', justifyContent:'center', gap:'10px', marginTop:'20px'}}>
                            <a href={`https://api.whatsapp.com/send?text=${shortUrl}`} target="_blank" style={{width:40,height:40,background:'#25D366',borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',color:'#fff'}}><span className="glyphicon glyphicon-comment"></span></a>
                            <a href={`https://www.facebook.com/sharer/sharer.php?u=${shortUrl}`} target="_blank" style={{width:40,height:40,background:'#1877F2',borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',color:'#fff'}}><span className="glyphicon glyphicon-share"></span></a>
@@ -315,6 +315,7 @@ export default function Home() {
                       </div>
                     )}
 
+                    {/* EDIT FORM */}
                     {editingId && (
                       <div className="edit-view" style={{marginTop:20}}>
                         <div className="input-group">
@@ -331,24 +332,24 @@ export default function Home() {
                   </div>
                 </div>
 
+                {/* TOMBOL LIST */}
                 <div className="text-center">
                   <button className="btn-toggle-list" onClick={() => setShowList(!showList)} style={{background:'#34495e', color:'#fff', border:'none', padding:'10px 20px', borderRadius:'50px'}}>
                     <span className="glyphicon glyphicon-list-alt"></span> {showList ? 'HIDE LIST' : 'MY URL LIST'}
                   </button>
                 </div>
 
-                {/* LIST AREA */}
-                {showList && (
-                  <div className="list-box" style={{marginTop:20, background:'#fff', padding:20, borderRadius:12}}>
+                {/* LIST AREA (TABEL) */}
+                <div className="list-box" style={{marginTop:20, background:'#fff', padding:20, borderRadius:12, display: showList ? 'block' : 'none'}}>
                     <div className="table-responsive">
-                      <table className="table table-hover">
+                      <table className="table table-hover" style={{tableLayout:'fixed', width:'100%'}}>
                         <thead>
                           <tr>
                             <th style={{width:'50px'}}>Img</th>
-                            <th>Short</th>
+                            <th style={{width:'100px'}}>Short</th>
                             <th>Original</th>
-                            <th>Klik</th>
-                            <th className="text-right">Aksi</th>
+                            <th style={{width:'50px'}}>Klik</th>
+                            <th className="text-right" style={{width:'100px'}}>Aksi</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -358,8 +359,12 @@ export default function Home() {
                             currentItems.map(link => (
                               <tr key={link.id}>
                                 <td><img src={getFavicon(link.url)} style={{width:25, height:25, borderRadius:4}} onError={(e)=>{e.currentTarget.style.display='none'}} /></td>
-                                <td><b style={{color:'#333'}}>{link.id}</b></td>
-                                <td><div style={{maxWidth:'150px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', color:'#999', fontSize:'12px'}}>{link.url}</div></td>
+                                <td><b style={{color:'#333', fontSize:'12px'}}>{link.id}</b></td>
+                                <td>
+                                  <div style={{width:'100%', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', color:'#999', fontSize:'12px'}}>
+                                    {link.url}
+                                  </div>
+                                </td>
                                 <td><span className="badge">{link.clicks || 0}</span></td>
                                 <td className="text-right">
                                   <button className="btn btn-xs" onClick={() => handleCopy(`https://tollsfakelink.vercel.app/${link.id}`, link.id)} id={`btn-copy-${link.id}`}><span className="glyphicon glyphicon-copy"></span></button>
@@ -373,21 +378,21 @@ export default function Home() {
                       </table>
                     </div>
 
-                    {/* PAGINATION BUTTONS */}
+                    {/* PAGINATION */}
                     <div className="pagination-area" style={{textAlign:'center', marginTop:15, display:'flex', justifyContent:'center', gap:'10px', alignItems:'center'}}>
                       <button className="btn btn-default btn-sm" onClick={prevPage} disabled={currentPage === 1}>
                         <span className="glyphicon glyphicon-chevron-left"></span> Prev
                       </button>
                       <span style={{fontSize:'12px', color:'#777'}}>
-                        Page {currentPage} of {totalPages === 0 ? 1 : totalPages}
+                        Page {currentPage} / {totalPages === 0 ? 1 : totalPages}
                       </span>
                       <button className="btn btn-default btn-sm" onClick={nextPage} disabled={currentPage >= totalPages}>
                         Next <span className="glyphicon glyphicon-chevron-right"></span>
                       </button>
                     </div>
-                  </div>
-                )}
+                </div>
 
+                {/* TOMBOL SETTINGS */}
                 <div className="text-center" style={{marginTop:30, marginBottom:20}}>
                   <button className="btn-gear-toggle" onClick={() => setShowSettings(!showSettings)} style={{width:40, height:40, borderRadius:'50%', background:'#fff', border:'1px solid #ddd'}}>
                     <span className="glyphicon glyphicon-cog"></span>
@@ -395,15 +400,26 @@ export default function Home() {
                   <div style={{fontSize:12, color:'#ccc', marginTop:5}}>Settings</div>
                 </div>
 
-                {/* SETTINGS AREA - DIBUAT LEBIH MENARIK (Style Card Putih) */}
+                {/* SETTINGS AREA */}
                 <div className="settings-panel" style={{display: showSettings ? 'block' : 'none', marginTop:20, background:'#fff', borderRadius:'10px', boxShadow:'0 5px 20px rgba(0,0,0,0.05)', overflow:'hidden'}}>
-                    {/* Header Abu-abu */}
                     <div style={{background:'#f9f9f9', padding:'15px 20px', borderBottom:'1px solid #eee'}}>
                         <h4 style={{margin:0, color:'#333', fontWeight:'bold'}}><span className="glyphicon glyphicon-wrench"></span> Konfigurasi Situs</h4>
                     </div>
                     
-                    {/* Isi Form */}
                     <div style={{padding:'20px'}}>
+                        {/* FITUR ON/OFF (INI YANG SAYA KEMBALIKAN) */}
+                        <div className="checkbox" style={{marginBottom: 20, background: '#f0f0f0', padding: 10, borderRadius: 5}}>
+                          <label style={{color: '#333', fontWeight: 'bold', width:'100%'}}>
+                            <input 
+                              type="checkbox" 
+                              checked={settings.offer_active} 
+                              onChange={(e) => setSettings({...settings, offer_active: e.target.checked})} 
+                              style={{marginRight: 10}}
+                            /> 
+                            AKTIFKAN REDIRECT OFFER?
+                          </label>
+                        </div>
+
                         <div className="form-group">
                             <label style={{color:'#666', marginBottom:5}}>Nama Situs</label>
                             <div className="input-group">
