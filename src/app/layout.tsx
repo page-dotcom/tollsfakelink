@@ -78,8 +78,7 @@ export default function RootLayout({
         {/* Bootstrap 3 CSS CDN (Sesuai HTML kamu) */}
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" />
       </head>
-      {/* Style Global Sederhana untuk memastikan background hitam */}
-      <body style={{ margin: 0, padding: 0, backgroundColor: '#050505', color: 'white' }}>
+      <body>
         {children}
       </body>
     </html>
