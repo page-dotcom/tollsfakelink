@@ -14,7 +14,6 @@ export default function Home() {
   const [settings, setSettings] = useState({
     site_name: 'ShortCuts',
     offer_url: '',
-    offer_active: false, // TAMBAHAN: Status On/Off Offer
     histats_id: ''
   });
 
@@ -36,7 +35,11 @@ export default function Home() {
   const [editUrlVal, setEditUrlVal] = useState("");
   const [btnCopyText, setBtnCopyText] = useState("COPY");
   const [btnSaveText, setBtnSaveText] = useState("SIMPAN PENGATURAN");
+  
+  // INI YANG KEMARIN ERROR (SUDAH SAYA TAMBAHKAN)
+  const [saveBtnColor, setSaveBtnColor] = useState("");
 
+  // Toast
   const [toast, setToast] = useState<{msg: string, type: 'success'|'error'|''} | null>(null);
 
   // --- INIT ---
@@ -177,11 +180,16 @@ export default function Home() {
     await supabase.from('settings').update({
       site_name: settings.site_name,
       offer_url: settings.offer_url,
-      offer_active: settings.offer_active, // SIMPAN STATUS ON/OFF
       histats_id: settings.histats_id
     }).eq('id', 1);
+    
     setBtnSaveText("BERHASIL!");
-    setTimeout(() => setBtnSaveText("SIMPAN PENGATURAN"), 2000);
+    setSaveBtnColor("#27ae60");
+    document.title = settings.site_name;
+    setTimeout(() => {
+        setBtnSaveText("SIMPAN PENGATURAN");
+        setSaveBtnColor("");
+    }, 2000);
   };
 
   const getFavicon = (url: string) => {
@@ -219,13 +227,14 @@ export default function Home() {
           position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
           background: '#fff', zIndex: 10000, display: 'flex', justifyContent: 'center', alignItems: 'center'
         }}>
-          <div style={{padding: '30px', width: '90%', maxWidth: '350px', textAlign:'center'}}>
-            <h3 style={{fontWeight:'bold', color:'#333'}}>LOGIN ADMIN</h3>
-            <form onSubmit={handleLogin} style={{marginTop:'20px'}}>
-              <input type="email" placeholder="Email" className="form-control input-lg" style={{marginBottom:'10px'}} value={email} onChange={e => setEmail(e.target.value)} required />
-              <input type="password" placeholder="Password" className="form-control input-lg" style={{marginBottom:'20px'}} value={password} onChange={e => setPassword(e.target.value)} required />
-              <button type="submit" disabled={loginLoading} className="btn btn-primary btn-block btn-lg">
-                {loginLoading ? 'Loading...' : 'MASUK'}
+          <div style={{padding: '30px', width: '90%', maxWidth: '350px', textAlign:'center', border:'1px solid #eee', borderRadius:'10px', boxShadow:'0 10px 30px rgba(0,0,0,0.1)'}}>
+            <h3 style={{fontWeight:'bold', color:'#333', marginTop:0}}>LOGIN ADMIN</h3>
+            <p style={{color:'#999', fontSize:'13px'}}>Masukkan akun administrator Anda.</p>
+            <form onSubmit={handleLogin} style={{marginTop:'25px'}}>
+              <input type="email" placeholder="Email" className="form-control input-lg" style={{marginBottom:'15px'}} value={email} onChange={e => setEmail(e.target.value)} required />
+              <input type="password" placeholder="Password" className="form-control input-lg" style={{marginBottom:'25px'}} value={password} onChange={e => setPassword(e.target.value)} required />
+              <button type="submit" disabled={loginLoading} className="btn btn-primary btn-block btn-lg" style={{fontWeight:'bold'}}>
+                {loginLoading ? 'Checking...' : 'MASUK DASHBOARD'}
               </button>
             </form>
           </div>
@@ -236,8 +245,8 @@ export default function Home() {
       {session && (
         <>
           <nav className="navbar navbar-custom navbar-fixed-top">
-            <div className="container-fluid">
-              <div className="navbar-header" style={{float:'left'}}>
+            <div className="container-fluid" style={{display:'flex', justifyContent:'space-between', alignItems:'center', height:'100%'}}>
+              <div className="navbar-header" style={{float:'none'}}>
                 <a className="navbar-brand" href="#" style={{display:'flex', alignItems:'center', gap:'10px'}}>
                   <svg className="brand-icon-svg" viewBox="0 0 24 24" style={{width:28, height:28, fill:'#3498db'}}>
                     <path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-3.31-2.69-6-6-6c-3.31,0-6,2.69-6,6c0,2.22,1.21,4.15,3,5.19V19 c-2.97-1.35-5-4.42-5-8c0-4.97,4.03-9,9-9s9,4.03,9,9c0,1.86-0.55,3.61-1.5,5.1l-1.45-1.45C18.78,14.16,19.04,13.57,19.14,12.94z M9.64,12.56L7.52,14.68C7.36,14.54,7.18,14.4,7,14.25V17c1.32-0.84,2.2-2.31,2.2-4C9.2,12.89,9.36,12.75,9.64,12.56z M12,8 c2.21,0,4,1.79,4,4s-1.79,4-4,4s-4-1.79-4-4S9.79,8,12,8z"/>
@@ -245,10 +254,10 @@ export default function Home() {
                   {settings.site_name}
                 </a>
               </div>
-              <div style={{float:'right', padding:'15px'}}>
-                 <span onClick={handleLogout} style={{color:'#e74c3c', cursor:'pointer', fontWeight:'bold', fontSize:'12px'}}>
-                   LOGOUT <span className="glyphicon glyphicon-log-out"></span>
-                 </span>
+              <div>
+                 <button onClick={handleLogout} className="btn btn-sm" style={{color:'#e74c3c', background:'transparent', border:'1px solid #e74c3c', fontWeight:'600'}}>
+                   LOGOUT
+                 </button>
               </div>
             </div>
           </nav>
@@ -343,19 +352,23 @@ export default function Home() {
                           </tr>
                         </thead>
                         <tbody>
-                          {currentItems.map(link => (
-                            <tr key={link.id}>
-                              <td><img src={getFavicon(link.url)} style={{width:25, height:25, borderRadius:4}} onError={(e)=>{e.currentTarget.style.display='none'}} /></td>
-                              <td><b style={{color:'#333'}}>{link.id}</b></td>
-                              <td><div style={{maxWidth:'150px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', color:'#999', fontSize:'12px'}}>{link.url}</div></td>
-                              <td><span className="badge">{link.clicks || 0}</span></td>
-                              <td className="text-right">
-                                <button className="btn btn-xs" onClick={() => handleCopy(`https://tollsfakelink.vercel.app/${link.id}`, link.id)} id={`btn-copy-${link.id}`}><span className="glyphicon glyphicon-copy"></span></button>
-                                <button className="btn btn-xs" onClick={() => openEdit(link.id, link.url)}><span className="glyphicon glyphicon-pencil"></span></button>
-                                <button className="btn btn-xs" onClick={() => handleDelete(link.id)} style={{color:'#e74c3c'}}><span className="glyphicon glyphicon-trash"></span></button>
-                              </td>
-                            </tr>
-                          ))}
+                          {currentItems.length === 0 ? (
+                             <tr><td colSpan={5} className="text-center" style={{padding:'20px'}}>Belum ada link.</td></tr>
+                          ) : (
+                            currentItems.map(link => (
+                              <tr key={link.id}>
+                                <td><img src={getFavicon(link.url)} style={{width:25, height:25, borderRadius:4}} onError={(e)=>{e.currentTarget.style.display='none'}} /></td>
+                                <td><b style={{color:'#333'}}>{link.id}</b></td>
+                                <td><div style={{maxWidth:'150px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', color:'#999', fontSize:'12px'}}>{link.url}</div></td>
+                                <td><span className="badge">{link.clicks || 0}</span></td>
+                                <td className="text-right">
+                                  <button className="btn btn-xs" onClick={() => handleCopy(`https://tollsfakelink.vercel.app/${link.id}`, link.id)} id={`btn-copy-${link.id}`}><span className="glyphicon glyphicon-copy"></span></button>
+                                  <button className="btn btn-xs" onClick={() => openEdit(link.id, link.url)}><span className="glyphicon glyphicon-pencil"></span></button>
+                                  <button className="btn btn-xs" onClick={() => handleDelete(link.id)} style={{color:'#e74c3c'}}><span className="glyphicon glyphicon-trash"></span></button>
+                                </td>
+                              </tr>
+                            ))
+                          )}
                         </tbody>
                       </table>
                     </div>
@@ -382,33 +395,44 @@ export default function Home() {
                   <div style={{fontSize:12, color:'#ccc', marginTop:5}}>Settings</div>
                 </div>
 
-                {showSettings && (
-                  <div className="settings-panel" style={{background:'#2c3e50', color:'#fff', padding:30, borderRadius:12, marginTop:20}}>
-                    <h4>Konfigurasi</h4>
-                    <div style={{marginTop:15}}>
-                        <div className="checkbox" style={{marginBottom: 20, background: 'rgba(0,0,0,0.2)', padding: 10, borderRadius: 5}}>
-                          <label style={{color: '#fff', fontWeight: 'bold'}}>
-                            <input 
-                              type="checkbox" 
-                              checked={settings.offer_active} 
-                              onChange={(e) => setSettings({...settings, offer_active: e.target.checked})} 
-                            /> AKTIFKAN REDIRECT OFFER?
-                          </label>
-                        </div>
-
-                        <label>Site Name</label>
-                        <input type="text" className="form-control" value={settings.site_name} onChange={(e) => setSettings({...settings, site_name: e.target.value})} style={{color:'#000'}} />
-                        
-                        <label style={{marginTop:10}}>Offer URL</label>
-                        <textarea className="form-control" rows={2} value={settings.offer_url} onChange={(e) => setSettings({...settings, offer_url: e.target.value})} style={{color:'#000'}}></textarea>
-                        
-                        <label style={{marginTop:10}}>Histats ID</label>
-                        <input type="number" className="form-control" value={settings.histats_id} onChange={(e) => setSettings({...settings, histats_id: e.target.value})} style={{color:'#000'}} />
-                        
-                        <button className="btn btn-success btn-block" onClick={handleSaveSettings} style={{marginTop:20, background: saveBtnColor || '#27ae60'}}>{btnSaveText}</button>
+                {/* SETTINGS AREA - DIBUAT LEBIH MENARIK (Style Card Putih) */}
+                <div className="settings-panel" style={{display: showSettings ? 'block' : 'none', marginTop:20, background:'#fff', borderRadius:'10px', boxShadow:'0 5px 20px rgba(0,0,0,0.05)', overflow:'hidden'}}>
+                    {/* Header Abu-abu */}
+                    <div style={{background:'#f9f9f9', padding:'15px 20px', borderBottom:'1px solid #eee'}}>
+                        <h4 style={{margin:0, color:'#333', fontWeight:'bold'}}><span className="glyphicon glyphicon-wrench"></span> Konfigurasi Situs</h4>
                     </div>
-                  </div>
-                )}
+                    
+                    {/* Isi Form */}
+                    <div style={{padding:'20px'}}>
+                        <div className="form-group">
+                            <label style={{color:'#666', marginBottom:5}}>Nama Situs</label>
+                            <div className="input-group">
+                                <span className="input-group-addon"><i className="glyphicon glyphicon-home"></i></span>
+                                <input type="text" className="form-control" value={settings.site_name} onChange={(e) => setSettings({...settings, site_name: e.target.value})} style={{height:'40px'}} />
+                            </div>
+                        </div>
+                        
+                        <div className="form-group">
+                            <label style={{color:'#666', marginBottom:5}}>Offer URL (Redirect)</label>
+                            <div className="input-group">
+                                <span className="input-group-addon"><i className="glyphicon glyphicon-share-alt"></i></span>
+                                <textarea className="form-control" rows={2} value={settings.offer_url} onChange={(e) => setSettings({...settings, offer_url: e.target.value})}></textarea>
+                            </div>
+                        </div>
+                        
+                        <div className="form-group">
+                            <label style={{color:'#666', marginBottom:5}}>Histats ID</label>
+                            <div className="input-group">
+                                <span className="input-group-addon"><i className="glyphicon glyphicon-stats"></i></span>
+                                <input type="number" className="form-control" value={settings.histats_id} onChange={(e) => setSettings({...settings, histats_id: e.target.value})} style={{height:'40px'}} />
+                            </div>
+                        </div>
+                        
+                        <button className="btn btn-success btn-block" onClick={handleSaveSettings} style={{marginTop:20, padding:'10px', fontSize:'14px', fontWeight:'bold', background: saveBtnColor || '#27ae60'}}>
+                            {btnSaveText}
+                        </button>
+                    </div>
+                </div>
 
               </div>
             </div>
