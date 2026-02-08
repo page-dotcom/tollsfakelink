@@ -31,8 +31,11 @@ export default function Home() {
   // Edit & Feedback
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editUrlVal, setEditUrlVal] = useState("");
+  
+  // FIX VARIABEL DISINI
   const [copyBtnText, setCopyBtnText] = useState("COPY");
   const [saveBtnText, setSaveBtnText] = useState("SIMPAN PENGATURAN");
+  
   const [toast, setToast] = useState<{msg: string, type: 'success'|'error'|''} | null>(null);
 
   // Pagination
@@ -120,7 +123,6 @@ export default function Home() {
           showToast("Link Berhasil Dibuat!", "success");
         } else {
           setViewState('form');
-          // TAMPILKAN ERROR DATABASE ASLI
           showToast(data.error || "Gagal membuat link", "error");
         }
       }, 500);
@@ -320,7 +322,7 @@ export default function Home() {
                       <label>Histats ID</label>
                       <input className="form-control" value={settings.histats_id} onChange={e=>setSettings({...settings, histats_id:e.target.value})} />
                     </div>
-                    <button className="btn btn-success btn-block" onClick={handleSaveSettings}>{btnSaveText}</button>
+                    <button className="btn btn-success btn-block" onClick={handleSaveSettings}>{saveBtnText}</button>
                   </div>
                 )}
 
