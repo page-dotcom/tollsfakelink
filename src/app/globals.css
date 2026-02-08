@@ -1,128 +1,140 @@
-/* --- 1. IMPORT FONTS & ICONS --- */
-@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
-@import url('https://fonts.googleapis.com/icon?family=Material+Icons');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
+/* --- RESET & BASE --- */
+* { box-sizing: border-box; }
 body {
-  background-color: #f0f2f5;
-  font-family: 'Roboto', sans-serif;
-  color: #333;
-  padding-top: 80px; /* Jarak Navbar Fixed */
+  background-color: #f3f4f6; /* Abu Platinum Bersih */
+  font-family: 'Inter', -apple-system, sans-serif;
+  color: #1f2937;
   margin: 0;
+  padding-top: 70px; /* Space untuk Navbar */
+  padding-bottom: 60px; /* Space untuk Footer */
+  min-height: 100vh;
+  position: relative;
 }
 
-/* --- 2. NAVBAR STYLE (Mirip Bootstrap 3) --- */
-.navbar-custom {
-  background-color: #ffffff;
-  border-bottom: 1px solid #d4d4d4;
-  height: 60px;
-  position: fixed; top: 0; left: 0; width: 100%;
-  z-index: 1000;
-  display: flex; align-items: center;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+/* --- 1. NAVBAR (FIXED, CLEAN) --- */
+.navbar {
+  position: fixed; top: 0; left: 0; width: 100%; height: 70px;
+  background: #ffffff; border-bottom: 1px solid #e5e7eb;
+  z-index: 1000; display: flex; align-items: center;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
 }
-.container { max-width: 900px; margin: 0 auto; padding: 0 15px; width: 100%; }
-.navbar-brand {
-  font-size: 20px; font-weight: 700; color: #333;
-  display: flex; align-items: center; gap: 10px; text-decoration: none;
+.container {
+  max-width: 900px; margin: 0 auto; padding: 0 20px; width: 100%;
 }
-.btn-logout {
-  background: #d9534f; color: #fff; border: 1px solid #d43f3a;
-  padding: 6px 12px; font-size: 12px; border-radius: 3px; cursor: pointer;
-}
+.navbar-inner { display: flex; justify-content: space-between; align-items: center; width: 100%; }
+.brand { font-size: 1.25rem; font-weight: 700; color: #111827; letter-spacing: -0.025em; display: flex; align-items: center; gap: 8px; }
 
-/* --- 3. KOTAK UTAMA (PANEL) --- */
-.panel {
-  background: #fff; border: 1px solid #ddd;
-  border-radius: 4px; /* KOTAK RAPI (GAK BULAT) */
-  box-shadow: 0 1px 1px rgba(0,0,0,0.05);
-  margin-bottom: 20px;
+/* --- 2. CARD / PANEL (KOTAK TEGAS) --- */
+.card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px; /* SUDUT 6px (TIDAK BULAT, TAPI TIDAK TAJAM SAKIT) */
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  margin-bottom: 24px; overflow: hidden;
 }
-.panel-body { padding: 30px; }
-.panel-header {
-  border-bottom: 1px solid #eee; padding: 15px 20px;
-  background: #f9f9f9; border-radius: 4px 4px 0 0;
+.card-header {
+  padding: 20px 24px; border-bottom: 1px solid #f3f4f6;
+  background: #ffffff;
 }
-.panel-title { margin: 0; font-size: 16px; font-weight: 700; color: #333; }
+.card-title { margin: 0; font-size: 1.1rem; font-weight: 600; color: #111827; }
+.card-body { padding: 24px; }
 
-/* --- 4. FORM & INPUT (GAYA BOOTSTRAP 3) --- */
-.form-control {
-  display: block; width: 100%; height: 45px;
-  padding: 6px 12px; font-size: 14px; color: #555;
-  background-color: #fff; border: 1px solid #ccc;
-  border-radius: 3px; /* SUDUT TAJAM */
-  box-shadow: inset 0 1px 1px rgba(0,0,0,0.075);
-  transition: border-color ease-in-out .15s,box-shadow ease-in-out .15s;
+/* --- 3. INPUTS & FORMS --- */
+.form-group { margin-bottom: 16px; }
+.label { display: block; margin-bottom: 6px; font-size: 0.875rem; font-weight: 500; color: #4b5563; }
+.input {
+  width: 100%; padding: 12px 16px; font-size: 1rem;
+  border: 1px solid #d1d5db; border-radius: 6px;
+  background: #fff; transition: border-color 0.2s;
 }
-.form-control:focus { border-color: #66afe9; outline: 0; box-shadow: inset 0 1px 1px rgba(0,0,0,.075),0 0 8px rgba(102,175,233,.6); }
+.input:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
 
-/* --- 5. TOMBOL UTAMA --- */
+/* --- 4. BUTTONS --- */
 .btn {
-  display: inline-block; padding: 10px 16px; margin-bottom: 0;
-  font-size: 14px; font-weight: 600; text-align: center;
-  white-space: nowrap; vertical-align: middle; cursor: pointer;
-  border: 1px solid transparent; border-radius: 3px; /* SUDUT TAJAM */
-}
-.btn-primary { background-color: #337ab7; border-color: #2e6da4; color: #fff; }
-.btn-primary:hover { background-color: #286090; border-color: #204d74; }
-.btn-success { background-color: #5cb85c; border-color: #4cae4c; color: #fff; }
-.btn-block { display: block; width: 100%; }
-
-/* --- 6. INPUT GROUP (GABUNGAN INPUT + BUTTON) --- */
-.input-group { display: flex; width: 100%; }
-.input-group .form-control { border-top-right-radius: 0; border-bottom-right-radius: 0; }
-.input-group .btn { border-top-left-radius: 0; border-bottom-left-radius: 0; margin-left: -1px; }
-
-/* --- 7. PROGRESS BAR --- */
-.progress {
-  height: 20px; margin-bottom: 20px; overflow: hidden;
-  background-color: #f5f5f5; border-radius: 4px;
-  box-shadow: inset 0 1px 2px rgba(0,0,0,.1);
-}
-.progress-bar-striped {
-  float: left; width: 0%; height: 100%; font-size: 12px;
-  line-height: 20px; color: #fff; text-align: center;
-  background-color: #337ab7;
-  background-image: linear-gradient(45deg,rgba(255,255,255,.15) 25%,transparent 25%,transparent 50%,rgba(255,255,255,.15) 50%,rgba(255,255,255,.15) 75%,transparent 75%,transparent);
-  background-size: 40px 40px; animation: progress-bar-stripes 2s linear infinite;
-  transition: width 0.3s ease;
-}
-@keyframes progress-bar-stripes { from {background-position: 40px 0;} to {background-position: 0 0;} }
-
-/* --- 8. TABLE STYLE --- */
-.table { width: 100%; max-width: 100%; margin-bottom: 20px; background: #fff; border-collapse: collapse; }
-.table>thead>tr>th { border-bottom: 2px solid #ddd; padding: 12px; text-align: left; }
-.table>tbody>tr>td { border-top: 1px solid #ddd; padding: 12px; vertical-align: middle; }
-.table-hover>tbody>tr:hover { background-color: #f5f5f5; }
-
-/* BUTTON ACTION DI TABEL (KECIL) */
-.btn-xs { padding: 4px 8px; font-size: 12px; border-radius: 3px; margin-right: 5px; }
-.btn-warning { background-color: #f0ad4e; border-color: #eea236; color: #fff; } /* EDIT */
-.btn-danger-xs { background-color: #d9534f; border-color: #d43f3a; color: #fff; } /* DELETE */
-.btn-info { background-color: #5bc0de; border-color: #46b8da; color: #fff; } /* COPY */
-
-/* --- 9. SOSMED ICONS --- */
-.social-area { text-align: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee; }
-.social-icon {
   display: inline-flex; align-items: center; justify-content: center;
-  width: 40px; height: 40px; border-radius: 50%; color: #fff;
-  margin: 0 5px; text-decoration: none; font-size: 20px;
+  padding: 12px 24px; font-weight: 600; font-size: 0.95rem;
+  border: 1px solid transparent; border-radius: 6px; cursor: pointer;
+  transition: all 0.2s; gap: 8px;
 }
-.bg-wa { background: #25D366; } .bg-fb { background: #1877F2; } .bg-tw { background: #1DA1F2; }
+.btn-primary { background: #2563eb; color: #fff; }
+.btn-primary:hover { background: #1d4ed8; }
+.btn-outline { background: #fff; border-color: #d1d5db; color: #374151; }
+.btn-outline:hover { background: #f9fafb; border-color: #9ca3af; }
+.btn-danger { background: #ef4444; color: #fff; }
+.btn-sm { padding: 6px 12px; font-size: 0.85rem; }
+.btn-full { width: 100%; }
 
-/* --- 10. LOGIN POPUP (BLUR HITAM) --- */
+/* --- 5. PROGRESS BAR --- */
+.progress-wrap { height: 8px; background: #e5e7eb; border-radius: 4px; overflow: hidden; margin-top: 10px; }
+.progress-fill { height: 100%; background: #2563eb; transition: width 0.3s ease; }
+
+/* --- 6. TABLE (RESPONSIVE WRAPPER) --- */
+.table-responsive {
+  width: 100%; overflow-x: auto; /* SCROLL DI HP */
+  border: 1px solid #e5e7eb; border-radius: 6px;
+}
+.table { width: 100%; border-collapse: collapse; min-width: 600px; background: #fff; }
+.table th {
+  background: #f9fafb; text-align: left; padding: 12px 16px;
+  font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;
+  color: #6b7280; border-bottom: 1px solid #e5e7eb; font-weight: 600;
+}
+.table td { padding: 14px 16px; border-bottom: 1px solid #e5e7eb; vertical-align: middle; font-size: 0.9rem; }
+.table tr:last-child td { border-bottom: none; }
+
+/* --- 7. ICONS & ACTIONS --- */
+.action-btn {
+  padding: 6px; border: 1px solid #e5e7eb; border-radius: 4px; background: #fff;
+  color: #6b7280; cursor: pointer; margin-left: 4px;
+}
+.action-btn:hover { border-color: #2563eb; color: #2563eb; }
+.delete-btn:hover { border-color: #ef4444; color: #ef4444; }
+
+/* --- 8. SOCIAL MEDIA GRID --- */
+.social-grid { display: flex; gap: 12px; justify-content: center; margin-top: 20px; }
+.social-item {
+  width: 44px; height: 44px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  color: white; transition: transform 0.2s;
+}
+.social-item:hover { transform: translateY(-3px); }
+.bg-wa { background: #25D366; }
+.bg-fb { background: #1877F2; }
+.bg-tw { background: #1DA1F2; }
+.bg-tg { background: #0088cc; }
+
+/* --- 9. LOGIN MODAL (TENGAH & RAPI) --- */
 .login-overlay {
   position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(0, 0, 0, 0.85); /* HITAM PEKAT */
-  backdrop-filter: blur(5px);
+  background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
   z-index: 9999; display: flex; align-items: center; justify-content: center;
 }
 .login-box {
-  background: #fff; padding: 40px; width: 90%; max-width: 350px;
-  border-radius: 4px; box-shadow: 0 5px 15px rgba(0,0,0,.5);
+  background: #fff; width: 100%; max-width: 380px; padding: 40px;
+  border-radius: 8px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
 }
 
-/* TOAST */
-.custom-toast {
-  position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
-  background: #333; color: #fff; padding: 10px 20px; border-radius: 4px; z-index: 100000;
+/* --- 10. CHECKBOX --- */
+.checkbox-card {
+  display: flex; align-items: center; padding: 16px;
+  background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px; cursor: pointer;
+}
+.checkbox-card input { width: 18px; height: 18px; margin-right: 12px; accent-color: #2563eb; }
+
+/* --- 11. FOOTER --- */
+.footer {
+  position: absolute; bottom: 0; width: 100%; height: 60px;
+  background: #fff; border-top: 1px solid #e5e7eb;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.85rem; color: #6b7280;
+}
+
+/* --- 12. TOAST --- */
+.toast {
+  position: fixed; top: 24px; left: 50%; transform: translateX(-50%);
+  background: #1f2937; color: #fff; padding: 10px 24px;
+  border-radius: 50px; font-weight: 500; font-size: 0.9rem;
+  box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); z-index: 100000;
 }
