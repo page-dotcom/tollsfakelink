@@ -4,9 +4,12 @@ import { useState, useEffect, FormEvent } from 'react';
 import { supabase } from '@/data/supabase';
 
 export default function Home() {
-  // --- AUTH & DATA ---
+  // --- STATE ---
   const [session, setSession] = useState<any>(null);
-  const [links, setLinks] = useState<any[]>([]);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loginLoading, setLoginLoading] = useState(false);
+
   const [settings, setSettings] = useState({
     site_name: 'ShortCuts',
     offer_url: '',
@@ -14,33 +17,27 @@ export default function Home() {
     histats_id: ''
   });
 
-  // --- INPUTS ---
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [longUrl, setLongUrl] = useState("");
-  const [shortUrl, setShortUrl] = useState("");
-  const [editUrlVal, setEditUrlVal] = useState("");
-  const [editingId, setEditingId] = useState<string | null>(null);
-
-  // --- UI STATES ---
+  // UI State
   const [viewState, setViewState] = useState<'form' | 'loading' | 'result'>('form');
   const [progress, setProgress] = useState(0);
+  const [longUrl, setLongUrl] = useState("");
+  const [shortUrl, setShortUrl] = useState("");
+  const [links, setLinks] = useState<any[]>([]);
+  
+  // Toggles
   const [showList, setShowList] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  const [loginLoading, setLoginLoading] = useState(false);
-  
-  // --- PAGINATION ---
+
+  // Edit & Feedback
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editUrlVal, setEditUrlVal] = useState("");
+  const [copyBtnText, setCopyBtnText] = useState("COPY");
+  const [saveBtnText, setSaveBtnText] = useState("SIMPAN PENGATURAN");
+  const [toast, setToast] = useState<{msg: string, type: 'success'|'error'|''} | null>(null);
+
+  // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 5;
-
-  // --- FEEDBACK ---
-  const [copyBtnText, setBtnCopyText] = useState("COPY");
-  
-  // PERBAIKAN DISINI: Nama variabel disamakan
-  const [btnSaveText, setBtnSaveText] = useState("SIMPAN PENGATURAN"); 
-  const [saveBtnColor, setSaveBtnColor] = useState(""); // Tambahan biar gak error warna
-  
-  const [toast, setToast] = useState<{msg: string, type: 'success'|'error'|''} | null>(null);
 
   // --- INIT ---
   useEffect(() => {
@@ -64,10 +61,7 @@ export default function Home() {
 
   function loadData() {
     supabase.from('settings').select('*').single().then(({ data }) => {
-      if (data) {
-        setSettings(data);
-        document.title = data.site_name;
-      }
+      if (data) { setSettings(data); document.title = data.site_name; }
     });
     fetchLinks();
   }
@@ -92,6 +86,10 @@ export default function Home() {
     setLinks([]);
   };
 
+  const showToast = (msg: string, type: 'success'|'error') => {
+    setToast({ msg, type });
+  };
+
   const handleShorten = async (e: FormEvent) => {
     e.preventDefault();
     if (!longUrl) return;
@@ -107,7 +105,6 @@ export default function Home() {
         body: JSON.stringify({ url: longUrl })
       });
       const data = await res.json();
-      
       clearInterval(interval);
       setProgress(100);
 
@@ -120,9 +117,10 @@ export default function Home() {
           setLongUrl("");
           fetchLinks();
           setCurrentPage(1);
-          showToast("Link berhasil dibuat!", "success");
+          showToast("Link Berhasil Dibuat!", "success");
         } else {
           setViewState('form');
+          // TAMPILKAN ERROR DATABASE ASLI
           showToast(data.error || "Gagal membuat link", "error");
         }
       }, 500);
@@ -133,43 +131,32 @@ export default function Home() {
   };
 
   const handleDelete = async (id: string) => {
-    if(!confirm("Hapus link ini?")) return;
+    if(!confirm("Hapus?")) return;
     await fetch('/api/links', { method: 'DELETE', body: JSON.stringify({ id }) });
     setLinks(links.filter(l => l.id !== id));
-    showToast("Link dihapus", "success");
+    showToast("Terhapus", "success");
   };
 
   const handleSaveSettings = async () => {
-    // FIX: Menggunakan nama variabel yang benar (setBtnSaveText)
-    setBtnSaveText("MENYIMPAN...");
-    
+    setSaveBtnText("MENYIMPAN...");
     await supabase.from('settings').update({
       site_name: settings.site_name,
       offer_url: settings.offer_url,
       offer_active: settings.offer_active,
       histats_id: settings.histats_id
     }).eq('id', 1);
-    
-    setBtnSaveText("BERHASIL!");
-    setSaveBtnColor("#27ae60"); // Hijau
-    
-    document.title = settings.site_name;
-    setTimeout(() => {
-        setBtnSaveText("SIMPAN PENGATURAN");
-        setSaveBtnColor(""); // Reset warna
-    }, 2000);
+    setSaveBtnText("BERHASIL!");
+    setTimeout(() => setSaveBtnText("SIMPAN PENGATURAN"), 2000);
   };
 
-  // Helper UI
-  const showToast = (msg: string, type: 'success'|'error') => setToast({ msg, type });
   const handleCopy = (text: string) => {
     navigator.clipboard.writeText(text);
-    setBtnCopyText("COPIED!");
-    setTimeout(() => setBtnCopyText("COPY"), 1500);
+    setCopyBtnText("COPIED!");
+    setTimeout(() => setCopyBtnText("COPY"), 1500);
   };
+
   const getFavicon = (url: string) => {
-    try { return `https://www.google.com/s2/favicons?domain=${new URL(url).hostname}&sz=64`; }
-    catch { return ""; }
+    try { return `https://www.google.com/s2/favicons?domain=${new URL(url).hostname}&sz=64`; } catch { return ""; }
   };
 
   // Pagination Logic
@@ -178,6 +165,7 @@ export default function Home() {
   const currentItems = links.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(links.length / ITEMS_PER_PAGE);
 
+  // --- RENDER ---
   return (
     <>
       {/* TOAST */}
@@ -251,7 +239,6 @@ export default function Home() {
                         <div className="text-center" style={{marginTop:15}}>
                           <a style={{cursor:'pointer', textDecoration:'underline'}} onClick={()=>{setViewState('form'); setLongUrl('');}}>Buat lagi</a>
                         </div>
-                        {/* SOSMED BUTTONS */}
                         <div className="text-center" style={{marginTop:20}}>
                            <a href={`https://api.whatsapp.com/send?text=${shortUrl}`} target="_blank" className="btn btn-success btn-circle" style={{margin:5}}>WA</a>
                            <a href={`https://www.facebook.com/sharer/sharer.php?u=${shortUrl}`} target="_blank" className="btn btn-primary btn-circle" style={{margin:5}}>FB</a>
@@ -274,7 +261,7 @@ export default function Home() {
 
                 <div className="text-center" style={{marginTop:30}}>
                   <button className="btn btn-default" onClick={()=>setShowList(!showList)}>
-                    <span className="glyphicon glyphicon-list"></span> MY LIST
+                    <span className="glyphicon glyphicon-list"></span> {showList ? 'HIDE LIST' : 'MY URL LIST'}
                   </button>
                 </div>
 
@@ -333,7 +320,7 @@ export default function Home() {
                       <label>Histats ID</label>
                       <input className="form-control" value={settings.histats_id} onChange={e=>setSettings({...settings, histats_id:e.target.value})} />
                     </div>
-                    <button className="btn btn-success btn-block" style={{background: saveBtnColor || '#5cb85c'}} onClick={handleSaveSettings}>{btnSaveText}</button>
+                    <button className="btn btn-success btn-block" onClick={handleSaveSettings}>{btnSaveText}</button>
                   </div>
                 )}
 
