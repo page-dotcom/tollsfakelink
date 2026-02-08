@@ -1,116 +1,171 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+/* IMPORT GOOGLE FONTS & ICONS */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/icon?family=Material+Icons+Round');
+
+:root {
+  --bg-body: #050505;
+  --bg-card: #121212;
+  --bg-input: #1e1e1e;
+  --primary: #3b82f6; /* Biru Neon */
+  --primary-hover: #2563eb;
+  --text-main: #ffffff;
+  --text-muted: #a3a3a3;
+  --border: #2d2d2d;
+}
 
 body {
   font-family: 'Poppins', sans-serif;
-  background-color: #000; /* Abu sangat muda clean */
-  color: #333;
-  padding-top: 80px; /* Jarak Navbar Fixed */
+  background-color: var(--bg-body);
+  color: var(--text-main);
+  margin: 0;
+  padding-top: 90px; /* Space for fixed navbar */
+  background-image: radial-gradient(circle at 50% 0%, #1a1a2e 0%, #000000 70%); /* Efek Glow di atas */
+  min-height: 100vh;
 }
 
-/* --- 1. NAVBAR --- */
-.navbar-custom {
-  background: #fff;
-  border-bottom: 1px solid #ddd;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.03);
-  min-height: 70px;
+/* --- ICON GOOGLE --- */
+.material-icons-round {
+  font-size: 20px;
+  vertical-align: middle;
 }
-.navbar-brand {
-  height: 70px; line-height: 40px; font-weight: 700; color: #2c3e50 !important;
-  font-size: 20px; letter-spacing: 0.5px; display: flex; align-items: center;
-}
-.navbar-right-btn { margin-top: 18px; margin-right: 15px; }
 
-/* --- 2. LOGIN POPUP (BLUR HITAM) --- */
+/* --- NAVBAR GLASS --- */
+.navbar-glass {
+  background: rgba(18, 18, 18, 0.8);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  position: fixed; top: 0; left: 0; width: 100%;
+  z-index: 1000; height: 70px;
+  display: flex; align-items: center;
+}
+.nav-container {
+  max-width: 800px; width: 100%; margin: 0 auto; padding: 0 20px;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.brand-logo {
+  display: flex; align-items: center; gap: 10px;
+  font-weight: 700; font-size: 1.2rem; color: #fff; text-decoration: none;
+}
+.brand-svg { width: 32px; height: 32px; fill: var(--primary); filter: drop-shadow(0 0 5px rgba(59,130,246,0.5)); }
+
+/* --- BUTTONS --- */
+.btn {
+  border: none; border-radius: 8px; cursor: pointer;
+  font-weight: 600; font-family: 'Poppins', sans-serif;
+  transition: all 0.3s ease; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+}
+.btn-primary {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white; padding: 12px 24px;
+  box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+}
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(37, 99, 235, 0.5); }
+.btn-danger { background: #ef4444; color: white; padding: 8px 16px; font-size: 0.85rem; }
+.btn-outline {
+  background: transparent; border: 1px solid var(--border); color: var(--text-muted);
+  padding: 8px 16px;
+}
+.btn-outline:hover { border-color: #fff; color: #fff; }
+
+/* --- CARDS --- */
+.card-dark {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 30px;
+  margin-bottom: 25px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+}
+
+/* --- INPUTS --- */
+.input-dark {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  color: #fff;
+  width: 100%; padding: 15px;
+  border-radius: 10px; font-size: 1rem;
+  transition: border 0.3s;
+}
+.input-dark:focus {
+  outline: none; border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(59,130,246,0.2);
+}
+
+/* --- TABLE --- */
+.table-responsive { overflow-x: auto; border-radius: 10px; border: 1px solid var(--border); }
+.table-dark { width: 100%; border-collapse: collapse; min-width: 600px; }
+.table-dark th {
+  background: #1a1a1a; color: var(--text-muted);
+  text-align: left; padding: 15px; font-size: 0.85rem; text-transform: uppercase;
+}
+.table-dark td {
+  padding: 15px; border-top: 1px solid var(--border); color: #e5e5e5;
+  vertical-align: middle;
+}
+.favicon { width: 24px; height: 24px; border-radius: 4px; background: #333; }
+.link-main { color: var(--primary); font-weight: 600; text-decoration: none; }
+.link-sub { color: #666; font-size: 0.85rem; display: block; max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* --- ACTION BUTTONS ICON --- */
+.action-btn {
+  background: transparent; border: none; color: #777; cursor: pointer;
+  width: 32px; height: 32px; border-radius: 6px; transition: 0.2s;
+}
+.action-btn:hover { background: #222; color: #fff; }
+.action-btn.delete:hover { background: #3f1111; color: #ff5555; }
+
+/* --- TOGGLES (TAB STYLE) --- */
+.tab-container {
+  display: flex; gap: 10px; justify-content: center; margin: 30px 0;
+}
+.tab-btn {
+  background: #1a1a1a; color: #777; padding: 10px 20px; border-radius: 50px;
+  border: 1px solid var(--border); cursor: pointer; font-size: 0.9rem;
+  display: flex; align-items: center; gap: 8px; transition: 0.3s;
+}
+.tab-btn.active {
+  background: var(--primary); color: white; border-color: var(--primary);
+  box-shadow: 0 0 15px rgba(59,130,246,0.4);
+}
+
+/* --- SETTINGS --- */
+.switch-wrapper {
+  display: flex; align-items: center; justify-content: space-between;
+  background: #1a1a1a; padding: 15px; border-radius: 10px; border: 1px solid var(--border);
+  margin-bottom: 20px; cursor: pointer;
+}
+.switch-box {
+  width: 50px; height: 26px; background: #333; border-radius: 50px;
+  position: relative; transition: 0.3s;
+}
+.switch-box.on { background: var(--primary); }
+.switch-circle {
+  width: 20px; height: 20px; background: #fff; border-radius: 50%;
+  position: absolute; top: 3px; left: 3px; transition: 0.3s;
+}
+.switch-box.on .switch-circle { left: 27px; }
+
+/* --- LOGIN POPUP --- */
 .login-backdrop {
   position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(0, 0, 0, 0.75); /* Hitam Gelap */
-  backdrop-filter: blur(8px); /* Efek Blur Kaca */
-  z-index: 9999;
-  display: flex; align-items: center; justify-content: center;
+  background: rgba(0,0,0,0.85); backdrop-filter: blur(10px);
+  z-index: 9999; display: flex; align-items: center; justify-content: center;
 }
-.login-card {
-  background: #fff; width: 90%; max-width: 400px;
-  padding: 40px; border-radius: 8px;
-  box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-  animation: slideDown 0.4s ease;
+.login-modal {
+  background: #121212; padding: 40px; border-radius: 20px;
+  width: 90%; max-width: 380px; border: 1px solid #333;
+  text-align: center; box-shadow: 0 0 50px rgba(59,130,246,0.1);
 }
-@keyframes slideDown { from {transform: translateY(-50px); opacity: 0;} to {transform: translateY(0); opacity: 1;} }
 
-/* --- 3. TOOL BOX (KOTAK UTAMA) --- */
-.main-box {
-  background: #fff; border-radius: 6px;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-  border: 1px solid #e1e1e1;
-  overflow: hidden; margin-bottom: 30px;
-}
-.box-header { padding: 30px 20px 10px; text-align: center; }
-.box-header h2 { margin: 0; font-weight: 700; color: #2c3e50; }
-.box-body { padding: 20px 30px 40px; }
-
-/* --- 4. FORM ELEMENTS --- */
-.input-lg-custom {
-  height: 55px; border-radius: 4px 0 0 4px !important;
-  border: 2px solid #eee; box-shadow: none; font-size: 15px;
-}
-.input-lg-custom:focus { border-color: #3498db; }
-.btn-lg-custom {
-  height: 55px; background: #3498db; color: #fff;
-  font-weight: 600; border: none; padding: 0 25px;
-  border-radius: 0 4px 4px 0 !important;
-}
-.btn-lg-custom:hover { background: #258cd1; color: #fff; }
-
-/* --- 5. BUTTONS & TOGGLES --- */
-.btn-pill {
-  background: #fff; border: 1px solid #ccc; color: #555;
-  padding: 10px 30px; border-radius: 50px; font-weight: 600;
-  transition: all 0.3s;
-}
-.btn-pill:hover { background: #f8f8f8; border-color: #bbb; }
-.btn-icon-action {
-  background: transparent; border: 1px solid #eee;
-  width: 32px; height: 32px; border-radius: 4px;
-  color: #777; margin: 0 2px;
-}
-.btn-icon-action:hover { background: #3498db; color: #fff; border-color: #3498db; }
-.btn-icon-del:hover { background: #e74c3c; color: #fff; border-color: #e74c3c; }
-
-/* --- 6. TABLE & LIST --- */
-.table-container {
-  background: #fff; padding: 20px; border-radius: 6px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.03); margin-top: 20px;
-}
-.table > tbody > tr > td { vertical-align: middle; padding: 12px; }
-.img-favicon { width: 24px; height: 24px; border-radius: 3px; }
-.link-title { font-weight: 600; color: #3498db; display: block; }
-.link-url { font-size: 12px; color: #999; display: block; max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-/* --- 7. SETTINGS PANEL --- */
-.settings-box {
-  background: #fff; padding: 30px; border-radius: 6px;
-  box-shadow: 0 5px 20px rgba(0,0,0,0.05); margin-top: 20px; margin-bottom: 50px;
-  border-left: 4px solid #3498db;
-}
-.custom-checkbox {
-  background: #f9f9f9; padding: 15px; border-radius: 4px;
-  border: 1px solid #eee; margin-bottom: 20px; cursor: pointer;
-}
-.custom-checkbox input { margin-right: 10px; transform: scale(1.2); }
-
-/* --- 8. TOAST NOTIFICATION --- */
-.toast-msg {
+/* --- TOAST --- */
+.toast-wrap {
   position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
-  background: #333; color: #fff; padding: 12px 30px; border-radius: 50px;
-  z-index: 100000; font-weight: 600; box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+  z-index: 100000;
 }
-.toast-success { background: #27ae60; }
-.toast-error { background: #c0392b; }
-
-/* --- 9. MEDIA QUERIES (RESPONSIF HP) --- */
-@media (max-width: 768px) {
-  .container { padding: 10px; }
-  .box-body { padding: 20px; }
-  .table-responsive { border: none; }
-  .link-url { max-width: 120px; } /* Biar gak lebar di HP */
-  .btn-pill { width: 100%; display: block; margin-bottom: 10px; }
+.toast-box {
+  background: #1e1e1e; color: #fff; padding: 12px 25px; border-radius: 50px;
+  border: 1px solid #333; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  display: flex; align-items: center; gap: 10px; font-size: 0.9rem;
 }
+.text-success { color: #4ade80; }
+.text-error { color: #f87171; }
