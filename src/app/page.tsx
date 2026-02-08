@@ -6,24 +6,24 @@ import { supabase } from '@/data/supabase';
 export default function Home() {
   // --- STATE ---
   const [session, setSession] = useState<any>(null);
-  const [authChecking, setAuthChecking] = useState(true);
+  const [authChecking, setAuthChecking] = useState(true); // Biar gak kedip login
 
-  // Data
+  // DATA
   const [links, setLinks] = useState<any[]>([]);
   const [settings, setSettings] = useState({
-    site_name: 'ShortTools',
+    site_name: 'Yasue Tools',
     offer_url: '',
     offer_active: false,
     histats_id: ''
   });
 
-  // Inputs
+  // INPUTS
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [longUrl, setLongUrl] = useState("");
-  const [resultUrl, setResultUrl] = useState("");
+  const [shortUrl, setShortUrl] = useState("");
   
-  // UI State
+  // UI LOGIC
   const [editingId, setEditingId] = useState<string|null>(null);
   const [editUrlVal, setEditUrlVal] = useState("");
   const [viewState, setViewState] = useState<'input'|'loading'|'result'>('input');
@@ -32,7 +32,7 @@ export default function Home() {
   const [showList, setShowList] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
 
-  // Pagination
+  // PAGINATION
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 5;
 
@@ -54,7 +54,7 @@ export default function Home() {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Timer Toast
+  // AUTO HIDE TOAST
   useEffect(() => {
     if (toast) {
       const t = setTimeout(() => setToast(null), 3000);
@@ -75,11 +75,13 @@ export default function Home() {
     if (json.success) setLinks(json.data || []);
   }
 
+  const showNotif = (msg: string) => setToast(msg);
+
   // --- ACTIONS ---
   const handleLogin = async (e: FormEvent) => {
     e.preventDefault();
     const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) setToast("Login Gagal: " + error.message);
+    if (error) showNotif("Login Gagal: " + error.message);
   };
 
   const handleShorten = async (e: FormEvent) => {
@@ -89,7 +91,7 @@ export default function Home() {
     setViewState('loading');
     setProgress(0);
     
-    // Fake Progress
+    // Fake Progress Bar
     let p = 0;
     const interval = setInterval(() => { p += 20; if(p>95) p=95; setProgress(p); }, 150);
 
@@ -106,24 +108,27 @@ export default function Home() {
 
       setTimeout(() => {
         if (data.success) {
-          setResultUrl(`https://tollsfakelink.vercel.app/${data.shortId}`);
+          setShortUrl(`https://tollsfakelink.vercel.app/${data.shortId}`);
           setViewState('result');
           setLongUrl("");
           fetchLinks();
-          setToast("Link Berhasil!");
+          showNotif("Link Berhasil Dibuat!");
         } else {
           setViewState('input');
-          setToast(data.error);
+          showNotif(data.error);
         }
       }, 300);
-    } catch { setViewState('input'); setToast("Error Koneksi"); }
+    } catch {
+      setViewState('input');
+      showNotif("Error Koneksi Server");
+    }
   };
 
   const handleDelete = async (id: string) => {
-    if(!confirm("Hapus permanen?")) return;
+    if(!confirm("Yakin hapus?")) return;
     await fetch('/api/links', { method: 'DELETE', body: JSON.stringify({ id }) });
     setLinks(links.filter(l => l.id !== id));
-    setToast("Terhapus");
+    showNotif("Link Terhapus");
   };
 
   const startEdit = (link: any) => {
@@ -137,7 +142,7 @@ export default function Home() {
     await fetch('/api/links', { method: 'PATCH', body: JSON.stringify({ id: editingId, newUrl: editUrlVal }) });
     setEditingId(null);
     fetchLinks();
-    setToast("Link Diupdate");
+    showNotif("Link Berhasil Diupdate");
   };
 
   const saveSettings = async () => {
@@ -147,12 +152,12 @@ export default function Home() {
       offer_active: settings.offer_active,
       histats_id: settings.histats_id
     }).eq('id', 1);
-    setToast("Pengaturan Tersimpan");
+    showNotif("Pengaturan Tersimpan");
   };
 
   const copyText = (text: string) => {
     navigator.clipboard.writeText(text);
-    setToast("Disalin ke clipboard!");
+    showNotif("Tersalin ke Clipboard!");
   };
 
   // Pagination Logic
@@ -161,191 +166,205 @@ export default function Home() {
   const currentItems = links.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(links.length / ITEMS_PER_PAGE);
 
-  // --- RENDER ---
-  if (authChecking) return null; // Layar putih sebentar saat cek login (biar gak kedip form)
+  // --- RENDER SCREEN ---
+  if (authChecking) return <div style={{height:'100vh', background:'#eee'}}></div>; // Blank saat loading
 
   return (
     <>
       {toast && <div className="toast">{toast}</div>}
 
-      {/* LOGIN MODAL */}
+      {/* LOGIN POPUP */}
       {!session && (
-        <div className="login-overlay">
-          <div className="login-box">
-            <h2 style={{marginTop:0, marginBottom:10, textAlign:'center'}}>Welcome Back</h2>
-            <p style={{textAlign:'center', color:'#6b7280', marginBottom:30}}>Masuk untuk mengelola link.</p>
+        <div className="login-backdrop">
+          <div className="login-panel">
+            <h3 style={{marginTop:0, marginBottom:20, textAlign:'center', color:'#333'}}>ADMIN LOGIN</h3>
             <form onSubmit={handleLogin}>
-              <div className="form-group">
-                <input className="input" type="email" placeholder="Email Address" value={email} onChange={e=>setEmail(e.target.value)} required />
+              <div style={{marginBottom:15}}>
+                <label style={{fontSize:12, fontWeight:'bold', color:'#777'}}>EMAIL</label>
+                <input className="form-control" type="email" value={email} onChange={e=>setEmail(e.target.value)} required />
               </div>
-              <div className="form-group">
-                <input className="input" type="password" placeholder="Password" value={password} onChange={e=>setPassword(e.target.value)} required />
+              <div style={{marginBottom:25}}>
+                <label style={{fontSize:12, fontWeight:'bold', color:'#777'}}>PASSWORD</label>
+                <input className="form-control" type="password" value={password} onChange={e=>setPassword(e.target.value)} required />
               </div>
-              <button className="btn btn-primary btn-full">LOGIN DASHBOARD</button>
+              <button className="btn btn-primary btn-block">MASUK</button>
             </form>
           </div>
         </div>
       )}
 
-      {/* MAIN APP */}
+      {/* DASHBOARD */}
       {session && (
         <>
-          <nav className="navbar">
+          <nav className="navbar-custom">
             <div className="container navbar-inner">
-              <div className="brand">
-                <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+              <a href="#" className="navbar-brand">
+                <span className="material-icons-round">dashboard</span>
                 {settings.site_name}
-              </div>
-              <button onClick={async()=>{await supabase.auth.signOut(); setLinks([])}} className="btn btn-sm btn-outline">LOGOUT</button>
+              </a>
+              <button onClick={async()=>{await supabase.auth.signOut(); setLinks([])}} className="btn-logout">LOGOUT</button>
             </div>
           </nav>
 
           <div className="container">
-            
-            {/* CARD UTAMA: SHORTEN / EDIT */}
-            <div className="card">
-              <div className="card-header">
-                <h3 className="card-title">{editingId ? 'Edit Link URL' : 'Buat Short Link Baru'}</h3>
+            <div style={{maxWidth:750, margin:'0 auto'}}>
+              
+              {/* CARD 1: SHORTEN / EDIT */}
+              <div className="panel">
+                <div className="panel-header">
+                  {editingId ? 'EDIT LINK URL' : 'BUAT SHORT LINK BARU'}
+                </div>
+                <div className="panel-body">
+                  
+                  {editingId ? (
+                    /* EDIT FORM */
+                    <div>
+                      <input className="form-control" value={editUrlVal} onChange={e=>setEditUrlVal(e.target.value)} style={{marginBottom:15}} />
+                      <div style={{display:'flex', gap:10}}>
+                        <button className="btn btn-success" style={{flex:1}} onClick={saveEdit}>SIMPAN</button>
+                        <button className="btn btn-outline" style={{flex:1}} onClick={()=>setEditingId(null)}>BATAL</button>
+                      </div>
+                    </div>
+                  ) : (
+                    /* CREATE FORM */
+                    <>
+                      {viewState === 'input' && (
+                        <form onSubmit={handleShorten}>
+                          <div style={{display:'flex', gap:10}}>
+                            <input className="form-control" placeholder="Tempel URL Panjang di sini..." value={longUrl} onChange={e=>setLongUrl(e.target.value)} required />
+                            <button className="btn btn-primary">SHORTEN</button>
+                          </div>
+                        </form>
+                      )}
+
+                      {viewState === 'loading' && (
+                        <div style={{textAlign:'center'}}>
+                          <div className="progress">
+                            <div className="progress-bar" style={{width: `${progress}%`}}></div>
+                          </div>
+                          <small style={{color:'#777'}}>Memproses Data... {progress}%</small>
+                        </div>
+                      )}
+
+                      {viewState === 'result' && (
+                        <div>
+                          <div style={{display:'flex', gap:10}}>
+                            <input className="form-control" value={shortUrl} readOnly style={{background:'#f8f9fa', color:'#3498db', fontWeight:'bold'}} />
+                            <button className="btn btn-success" onClick={()=>copyText(shortUrl)}>COPY</button>
+                          </div>
+                          
+                          <div className="social-box">
+                            <div style={{fontSize:12, color:'#999'}}>Bagikan Link:</div>
+                            <div className="social-icons">
+                              <a href={`https://api.whatsapp.com/send?text=${shortUrl}`} target="_blank" className="icon-link bg-wa"><span className="material-icons-round" style={{color:'white'}}>chat</span></a>
+                              <a href={`https://www.facebook.com/sharer/sharer.php?u=${shortUrl}`} target="_blank" className="icon-link bg-fb"><span className="material-icons-round" style={{color:'white'}}>facebook</span></a>
+                              <a href={`https://twitter.com/intent/tweet?url=${shortUrl}`} target="_blank" className="icon-link bg-tw"><span className="material-icons-round" style={{color:'white'}}>rss_feed</span></a>
+                            </div>
+                            <div style={{marginTop:20}}>
+                              <a style={{cursor:'pointer', textDecoration:'underline', color:'#3498db', fontSize:14}} onClick={()=>{setViewState('input'); setLongUrl('');}}>Buat Link Lagi</a>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
               </div>
-              <div className="card-body">
-                
-                {editingId ? (
-                  /* EDIT MODE */
-                  <div>
-                    <input className="input" value={editUrlVal} onChange={e=>setEditUrlVal(e.target.value)} style={{marginBottom:15}} />
-                    <div style={{display:'flex', gap:10}}>
-                      <button className="btn btn-primary" onClick={saveEdit}>SIMPAN PERUBAHAN</button>
-                      <button className="btn btn-outline" onClick={()=>setEditingId(null)}>BATAL</button>
+
+              {/* BUTTON TOGGLES */}
+              <div style={{display:'flex', justifyContent:'center', gap:10, marginBottom:20}}>
+                <button className="btn btn-outline" onClick={()=>setShowList(!showList)}>
+                  {showList ? 'Tutup Daftar Link' : 'Lihat Daftar Link'}
+                </button>
+                <button className="btn btn-outline" onClick={()=>setShowSettings(!showSettings)}>
+                  Pengaturan
+                </button>
+              </div>
+
+              {/* TABLE LIST (HITAM & ZEBRA) */}
+              {showList && (
+                <div className="panel">
+                  <div className="panel-header">DAFTAR LINK AKTIF</div>
+                  <div className="panel-body" style={{padding:0}}>
+                    <div className="table-responsive">
+                      <table className="table">
+                        <thead>
+                          <tr>
+                            <th style={{width:50}}>ICON</th>
+                            <th>SHORT LINK</th>
+                            <th>ORIGINAL</th>
+                            <th style={{width:70}}>KLIK</th>
+                            <th style={{textAlign:'center', width:120}}>AKSI</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {links.length === 0 ? (
+                            <tr><td colSpan={5} style={{textAlign:'center', padding:20, color:'#999'}}>Belum ada data.</td></tr>
+                          ) : currentItems.map(link => (
+                            <tr key={link.id}>
+                              <td style={{textAlign:'center'}}>
+                                <img src={`https://www.google.com/s2/favicons?domain=${new URL(link.url).hostname}&sz=32`} style={{width:24, borderRadius:4}} onError={(e:any)=>e.target.style.display='none'} />
+                              </td>
+                              <td><span style={{fontWeight:'bold', color:'#3498db'}}>{link.id}</span></td>
+                              <td><div style={{maxWidth:180, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', color:'#666'}}>{link.url}</div></td>
+                              <td><span style={{background:'#333', color:'#fff', padding:'2px 8px', borderRadius:10, fontSize:11}}>{link.clicks}</span></td>
+                              <td style={{textAlign:'center'}}>
+                                <button className="btn-action" onClick={()=>copyText(`https://tollsfakelink.vercel.app/${link.id}`)} title="Copy"><span className="material-icons-round" style={{fontSize:18}}>content_copy</span></button>
+                                <button className="btn-action" onClick={()=>startEdit(link)} title="Edit"><span className="material-icons-round" style={{fontSize:18}}>edit</span></button>
+                                <button className="btn-action btn-del" onClick={()=>handleDelete(link.id)} title="Hapus"><span className="material-icons-round" style={{fontSize:18}}>delete</span></button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                    
+                    {/* Pagination */}
+                    <div style={{padding:20, display:'flex', justifyContent:'center', gap:10}}>
+                      <button className="btn btn-outline" style={{padding:'5px 10px', fontSize:12}} disabled={currentPage===1} onClick={()=>setCurrentPage(c=>c-1)}>Prev</button>
+                      <span style={{fontSize:13, lineHeight:'30px'}}>Page {currentPage} / {totalPages||1}</span>
+                      <button className="btn btn-outline" style={{padding:'5px 10px', fontSize:12}} disabled={currentPage>=totalPages} onClick={()=>setCurrentPage(c=>c+1)}>Next</button>
                     </div>
                   </div>
-                ) : (
-                  /* NORMAL MODE */
-                  <>
-                    {viewState === 'input' && (
-                      <form onSubmit={handleShorten}>
-                        <div style={{display:'flex', gap:10}}>
-                          <input className="input" placeholder="Tempel URL Panjang di sini..." value={longUrl} onChange={e=>setLongUrl(e.target.value)} required />
-                          <button className="btn btn-primary">SHORTEN</button>
-                        </div>
-                      </form>
-                    )}
+                </div>
+              )}
 
-                    {viewState === 'loading' && (
-                      <div style={{textAlign:'center'}}>
-                        <span style={{fontSize:14, color:'#6b7280'}}>Memproses Link...</span>
-                        <div className="progress-wrap">
-                          <div className="progress-fill" style={{width:`${progress}%`}}></div>
-                        </div>
-                      </div>
-                    )}
+              {/* SETTINGS PANEL */}
+              {showSettings && (
+                <div className="panel">
+                  <div className="panel-header">KONFIGURASI SITUS</div>
+                  <div className="panel-body">
+                    
+                    <div className="checkbox-row">
+                      <label style={{width:'100%', fontWeight:'bold', color:'#333', display:'flex', alignItems:'center', cursor:'pointer'}}>
+                        <input type="checkbox" checked={settings.offer_active} onChange={e=>setSettings({...settings, offer_active:e.target.checked})} />
+                        AKTIFKAN REDIRECT OFFER?
+                      </label>
+                    </div>
 
-                    {viewState === 'result' && (
-                      <div>
-                        <div style={{display:'flex', gap:10}}>
-                          <input className="input" value={resultUrl} readOnly style={{background:'#f9fafb', color:'#2563eb', fontWeight:600}} />
-                          <button className="btn btn-primary" onClick={()=>copyText(resultUrl)}>COPY</button>
-                        </div>
-                        
-                        {/* SOCIAL ICONS */}
-                        <div className="social-grid">
-                          <a href={`https://api.whatsapp.com/send?text=${resultUrl}`} target="_blank" className="social-item bg-wa">
-                            <svg viewBox="0 0 24 24" width="20" height="20" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-                          </a>
-                          <a href={`https://www.facebook.com/sharer/sharer.php?u=${resultUrl}`} target="_blank" className="social-item bg-fb">
-                            <svg viewBox="0 0 24 24" width="20" height="20" fill="white"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
-                          </a>
-                          <a href={`https://twitter.com/intent/tweet?url=${resultUrl}`} target="_blank" className="social-item bg-tw">
-                            <svg viewBox="0 0 24 24" width="20" height="20" fill="white"><path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/></svg>
-                          </a>
-                          <a href={`https://t.me/share/url?url=${resultUrl}`} target="_blank" className="social-item bg-tg">
-                            <svg viewBox="0 0 24 24" width="20" height="20" fill="white"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
-                          </a>
-                        </div>
-                        <div style={{textAlign:'center', marginTop:20}}>
-                          <a style={{color:'#6b7280', fontSize:13, cursor:'pointer', textDecoration:'underline'}} onClick={()=>{setViewState('input'); setLongUrl('');}}>Buat Link Lagi</a>
-                        </div>
-                      </div>
-                    )}
-                  </>
-                )}
-              </div>
+                    <div style={{marginTop:15}}>
+                      <label style={{fontSize:12, color:'#777', fontWeight:'bold'}}>NAMA SITUS</label>
+                      <input className="form-control" value={settings.site_name} onChange={e=>setSettings({...settings, site_name:e.target.value})} />
+                    </div>
+                    <div style={{marginTop:15}}>
+                      <label style={{fontSize:12, color:'#777', fontWeight:'bold'}}>URL OFFER (TARGET)</label>
+                      <textarea className="form-control" rows={2} value={settings.offer_url} onChange={e=>setSettings({...settings, offer_url:e.target.value})}></textarea>
+                    </div>
+                    <div style={{marginTop:15, marginBottom:20}}>
+                      <label style={{fontSize:12, color:'#777', fontWeight:'bold'}}>HISTATS ID</label>
+                      <input className="form-control" value={settings.histats_id} onChange={e=>setSettings({...settings, histats_id:e.target.value})} />
+                    </div>
+                    <button className="btn btn-primary btn-block" onClick={saveSettings}>SIMPAN PENGATURAN</button>
+                  </div>
+                </div>
+              )}
+
             </div>
-
-            {/* TOGGLES */}
-            <div style={{display:'flex', gap:10, justifyContent:'center', marginBottom:20}}>
-              <button className="btn btn-outline" onClick={()=>setShowList(!showList)}>{showList ? 'Tutup List' : 'Lihat List'}</button>
-              <button className="btn btn-outline" onClick={()=>setShowSettings(!showSettings)}>Pengaturan</button>
-            </div>
-
-            {/* LIST TABLE (RESPONSIVE SCROLL) */}
-            {showList && (
-              <div className="card">
-                <div className="table-responsive">
-                  <table className="table">
-                    <thead>
-                      <tr>
-                        <th style={{width:50}}>Img</th>
-                        <th>Short Link</th>
-                        <th>Original</th>
-                        <th style={{textAlign:'right'}}>Aksi</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {currentItems.map(link => (
-                        <tr key={link.id}>
-                          <td><img src={`https://www.google.com/s2/favicons?domain=${new URL(link.url).hostname}&sz=32`} width="24" height="24" style={{borderRadius:4}} onError={(e:any)=>e.target.style.display='none'} /></td>
-                          <td><strong style={{color:'#2563eb'}}>{link.id}</strong></td>
-                          <td><div style={{maxWidth:180, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', color:'#6b7280'}}>{link.url}</div></td>
-                          <td style={{textAlign:'right'}}>
-                            <button className="action-btn" title="Copy" onClick={()=>copyText(`https://tollsfakelink.vercel.app/${link.id}`)}>C</button>
-                            <button className="action-btn" title="Edit" onClick={()=>startEdit(link)}>E</button>
-                            <button className="action-btn delete-btn" title="Hapus" onClick={()=>handleDelete(link.id)}>X</button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-                {/* Pagination */}
-                <div style={{padding:16, display:'flex', justifyContent:'center', gap:10}}>
-                  <button className="btn btn-sm btn-outline" disabled={currentPage===1} onClick={()=>setCurrentPage(c=>c-1)}>Prev</button>
-                  <span style={{fontSize:13, alignSelf:'center'}}>Page {currentPage} / {totalPages||1}</span>
-                  <button className="btn btn-sm btn-outline" disabled={currentPage>=totalPages} onClick={()=>setCurrentPage(c=>c+1)}>Next</button>
-                </div>
-              </div>
-            )}
-
-            {/* SETTINGS */}
-            {showSettings && (
-              <div className="card">
-                <div className="card-header"><h3 className="card-title">Konfigurasi Situs</h3></div>
-                <div className="card-body">
-                  <label className="checkbox-card">
-                    <input type="checkbox" checked={settings.offer_active} onChange={e=>setSettings({...settings, offer_active:e.target.checked})} />
-                    <span style={{fontWeight:500}}>Aktifkan Redirect Offer?</span>
-                  </label>
-                  <div className="form-group" style={{marginTop:16}}>
-                    <label className="label">Nama Situs</label>
-                    <input className="input" value={settings.site_name} onChange={e=>setSettings({...settings, site_name:e.target.value})} />
-                  </div>
-                  <div className="form-group">
-                    <label className="label">URL Offer (Target)</label>
-                    <textarea className="input" rows={2} value={settings.offer_url} onChange={e=>setSettings({...settings, offer_url:e.target.value})}></textarea>
-                  </div>
-                  <div className="form-group">
-                    <label className="label">Histats ID</label>
-                    <input className="input" type="number" value={settings.histats_id} onChange={e=>setSettings({...settings, histats_id:e.target.value})} />
-                  </div>
-                  <button className="btn btn-primary btn-full" onClick={saveSettings}>SIMPAN PENGATURAN</button>
-                </div>
-              </div>
-            )}
-
           </div>
 
-          <footer className="footer">
-            &copy; 2026 {settings.site_name}. All rights reserved.
-          </footer>
+          <div className="footer">
+            &copy; 2026 {settings.site_name}. All Rights Reserved.
+          </div>
         </>
       )}
     </>
