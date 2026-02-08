@@ -4,24 +4,24 @@
 /* --- RESET & BASE --- */
 * { box-sizing: border-box; }
 body {
-  background-color: #f1f5f9; /* Abu-abu Profesional (Gak Putih Silau) */
+  background-color: #f0f2f5; /* Abu-abu Soft (Gak Silau) */
   font-family: 'Inter', sans-serif;
   color: #334155;
   margin: 0;
-  padding-top: 70px;
+  padding-top: 70px; /* Jarak Navbar */
   min-height: 100vh;
   display: flex; flex-direction: column;
 }
 
-/* --- NAVBAR (DARK BLUE THEME) --- */
-.navbar {
-  background-color: #1e293b; /* Biru Gelap Elegan */
+/* --- 1. NAVBAR (DARK MODE STYLE) --- */
+.navbar-custom {
+  background-color: #1e1e2d; /* HITAM KEBIRUAN (MEWAH) */
   height: 65px; width: 100%;
   position: fixed; top: 0; left: 0; z-index: 1000;
   display: flex; align-items: center;
-  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
 }
-.container { max-width: 1000px; margin: 0 auto; padding: 0 20px; width: 100%; }
+.container { max-width: 950px; margin: 0 auto; padding: 0 20px; width: 100%; }
 .navbar-brand {
   font-size: 18px; font-weight: 700; color: #fff; text-decoration: none;
   display: flex; align-items: center; gap: 10px; letter-spacing: 0.5px;
@@ -33,23 +33,23 @@ body {
 }
 .btn-logout:hover { background: #dc2626; }
 
-/* --- CARD (KOTAK RAPI) --- */
+/* --- 2. CARD (KOTAK RAPI) --- */
 .card {
   background: #ffffff;
-  border-radius: 8px; /* Sudut pas (gak tajam, gak bulat banget) */
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  border-radius: 8px; /* Sudut 8px (Standar App Modern) */
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
   margin-bottom: 24px;
   border: 1px solid #e2e8f0;
   overflow: hidden;
 }
 .card-header {
-  padding: 20px 24px; border-bottom: 1px solid #f1f5f9;
-  background: #fff; font-weight: 700; color: #1e293b; font-size: 16px;
-  display: flex; align-items: center; gap: 8px;
+  padding: 15px 25px; border-bottom: 1px solid #f1f5f9;
+  background: #f8fafc; font-weight: 700; color: #1e293b; font-size: 15px;
+  display: flex; align-items: center; gap: 8px; text-transform: uppercase;
 }
-.card-body { padding: 24px; }
+.card-body { padding: 25px; }
 
-/* --- FORMS --- */
+/* --- 3. FORM ELEMENTS --- */
 .input-group { display: flex; width: 100%; gap: 0; }
 .form-control {
   width: 100%; height: 50px; padding: 10px 16px;
@@ -59,93 +59,97 @@ body {
 }
 .form-control:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
 
-/* --- BUTTONS --- */
+/* --- 4. BUTTONS --- */
 .btn {
   height: 50px; padding: 0 24px; font-weight: 600; border: none; cursor: pointer;
   border-radius: 6px; font-size: 14px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
   transition: 0.2s;
 }
-.btn-primary { background: #3b82f6; color: #fff; } /* Biru Cerah */
+.btn-primary { background: #3b82f6; color: #fff; }
 .btn-primary:hover { background: #2563eb; }
-.btn-success { background: #10b981; color: #fff; }
 .btn-outline { background: #fff; border: 1px solid #cbd5e1; color: #475569; }
 .btn-outline:hover { background: #f8fafc; border-color: #94a3b8; }
 .btn-full { width: 100%; }
 
-/* --- TABEL (INI YANG BIKIN RAPI DI DESKTOP) --- */
+/* --- 5. TABEL (SOLUSI TOMBOL TUMPUK) --- */
 .table-responsive {
   width: 100%; overflow-x: auto;
   border: 1px solid #e2e8f0; border-radius: 6px;
 }
-.table { width: 100%; border-collapse: collapse; min-width: 700px; background: #fff; }
+.table { width: 100%; border-collapse: collapse; min-width: 800px; /* LEBAR MINIMUM AGAR GAK PENYET */ background: #fff; }
 .table thead th {
-  background: #f8fafc; color: #64748b; padding: 12px 16px;
+  background: #1e293b; color: #fff; padding: 12px 16px;
   text-align: left; font-size: 12px; font-weight: 700; text-transform: uppercase;
-  border-bottom: 1px solid #e2e8f0;
 }
 .table tbody td {
-  padding: 14px 16px; border-bottom: 1px solid #f1f5f9;
+  padding: 12px 16px; border-bottom: 1px solid #f1f5f9;
   vertical-align: middle; color: #334155; font-size: 14px;
 }
 .table tbody tr:hover { background: #f8fafc; }
 
-/* KOLOM URL (Biar gak lebar banget) */
-.col-url { max-width: 250px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-/* KOLOM AKSI (Biar sejajar) */
-.col-action { white-space: nowrap; text-align: right; width: 120px; }
+/* URL COLUMN (Biar gak lebar banget) */
+.col-url { max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #64748b; }
+/* ACTION COLUMN (KUNCI LEBARNYA) */
+.col-action { width: 140px; text-align: right; white-space: nowrap; }
 
 .btn-icon {
-  width: 34px; height: 34px; border-radius: 6px; border: 1px solid #e2e8f0;
-  background: #fff; color: #64748b; cursor: pointer; margin-left: 6px;
+  width: 32px; height: 32px; border-radius: 6px; border: 1px solid #e2e8f0;
+  background: #fff; color: #64748b; cursor: pointer; margin-left: 5px;
   display: inline-flex; align-items: center; justify-content: center;
 }
 .btn-icon:hover { border-color: #3b82f6; color: #3b82f6; }
-.btn-icon.del:hover { border-color: #ef4444; color: #ef4444; }
+.btn-icon.del:hover { border-color: #ef4444; color: #ef4444; background: #fef2f2; }
 
-/* --- LOGIN POPUP (BAGUS & RAPI) --- */
-.login-overlay {
-  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(15, 23, 42, 0.7); /* Biru gelap transparan */
-  backdrop-filter: blur(5px); /* Efek Blur Mewah */
-  z-index: 9999; display: flex; align-items: center; justify-content: center;
+/* --- 6. RESULT AREA (HASIL) --- */
+.result-box {
+  background: #eff6ff; border: 1px dashed #bfdbfe;
+  padding: 20px; border-radius: 8px; text-align: center; margin-top: 20px;
 }
-.login-box {
-  background: #fff; width: 90%; max-width: 400px;
-  padding: 40px; border-radius: 12px;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
-}
-.login-header { text-align: center; margin-bottom: 30px; }
-.login-icon { width: 60px; height: 60px; background: #eff6ff; color: #3b82f6; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px; }
+.short-url-text { font-size: 18px; font-weight: 700; color: #3b82f6; margin-bottom: 15px; word-break: break-all; }
 
-/* --- SOCIAL MEDIA --- */
-.social-area { text-align: center; margin-top: 25px; padding-top: 20px; border-top: 1px dashed #e2e8f0; }
-.social-list { display: flex; justify-content: center; gap: 12px; margin-top: 15px; }
+/* --- 7. SOSMED (COLORFUL) --- */
+.social-area { margin-top: 20px; padding-top: 20px; border-top: 1px solid #e2e8f0; text-align: center; }
+.social-list { display: flex; justify-content: center; gap: 10px; margin-top: 15px; }
 .social-btn {
-  width: 44px; height: 44px; border-radius: 8px; display: flex; align-items: center; justify-content: center;
+  width: 42px; height: 42px; border-radius: 8px; display: flex; align-items: center; justify-content: center;
   color: white; transition: transform 0.2s;
 }
 .social-btn:hover { transform: translateY(-3px); }
 .bg-wa { background: #25D366; } .bg-fb { background: #1877F2; } 
 .bg-tw { background: #1DA1F2; } .bg-tg { background: #0088cc; }
 
-/* --- FOOTER --- */
+/* --- 8. LOGIN POPUP (GLASS EFFECT) --- */
+.login-overlay {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0, 0, 0, 0.6); /* Gelap */
+  backdrop-filter: blur(8px); /* BLUR PENTING */
+  z-index: 9999; display: flex; align-items: center; justify-content: center;
+}
+.login-card {
+  background: #fff; width: 90%; max-width: 380px;
+  padding: 40px; border-radius: 12px;
+  box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+  text-align: center;
+}
+.login-icon { width: 60px; height: 60px; background: #e0e7ff; color: #3b82f6; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; }
+
+/* --- 9. FOOTER --- */
 .footer {
-  margin-top: auto; background: #fff; border-top: 1px solid #e2e8f0;
-  padding: 20px; text-align: center; font-size: 13px; color: #94a3b8;
+  margin-top: auto; padding: 25px; text-align: center;
+  font-size: 13px; color: #94a3b8; background: #fff; border-top: 1px solid #e2e8f0;
 }
 
-/* --- TOAST --- */
+/* --- 10. TOAST --- */
 .toast {
-  position: fixed; top: 24px; left: 50%; transform: translateX(-50%);
-  background: #1e293b; color: #fff; padding: 12px 24px;
-  border-radius: 50px; font-weight: 500; z-index: 100000;
-  box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+  position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+  background: #1e1e2d; color: #fff; padding: 12px 30px;
+  border-radius: 50px; font-weight: 600; font-size: 14px; z-index: 100000;
+  box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3);
 }
 
-/* RESPONSIVE TWEAKS */
-@media (max-width: 640px) {
+/* RESPONSIVE */
+@media (max-width: 600px) {
   .input-group { flex-direction: column; gap: 10px; }
   .input-group .form-control { border-radius: 6px !important; }
   .input-group .btn { width: 100%; border-radius: 6px !important; }
-  .btn-icon { width: 30px; height: 30px; } /* Tombol tabel lebih kecil di HP */
 }
