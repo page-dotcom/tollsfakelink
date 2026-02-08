@@ -1,14 +1,15 @@
 'use client';
 
-// ==========================================
-// BAGIAN 1: SISTEM & LOGIC (CONTROLLER)
-// ==========================================
 import { useState, useEffect, FormEvent } from 'react';
 import { supabase } from '@/data/supabase';
 
 export default function Home() {
-  // STATE AUTH & DATA
+  // === STATE ===
   const [session, setSession] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+  const [toast, setToast] = useState<{msg: string, type: 'success'|'error'} | null>(null);
+
+  // Data
   const [links, setLinks] = useState<any[]>([]);
   const [settings, setSettings] = useState({
     site_name: 'ShortCuts',
@@ -17,28 +18,21 @@ export default function Home() {
     histats_id: ''
   });
 
-  // STATE INPUT FORM
+  // Inputs
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [longUrl, setLongUrl] = useState("");
-  const [shortUrl, setShortUrl] = useState("");
   
-  // STATE EDITING
-  const [editingId, setEditingId] = useState<string | null>(null); // ID link yang lagi diedit
+  // Tabs State (0: None, 1: List, 2: Settings)
+  const [activeTab, setActiveTab] = useState(0); 
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [editUrlVal, setEditUrlVal] = useState("");
 
-  // STATE UI (TAMPILAN)
-  const [viewState, setViewState] = useState<'form' | 'loading' | 'result'>('form');
-  const [showList, setShowList] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [toast, setToast] = useState<{msg: string, type: string} | null>(null);
-  
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 5;
 
-  // --- 1. INIT LOAD ---
+  // === INIT ===
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
@@ -50,7 +44,6 @@ export default function Home() {
     });
   }, []);
 
-  // Timer Toast
   useEffect(() => {
     if (toast) {
       const t = setTimeout(() => setToast(null), 3000);
@@ -58,13 +51,10 @@ export default function Home() {
     }
   }, [toast]);
 
-  // --- 2. FUNGSI DATA ---
   function loadData() {
-    // Ambil Settings
     supabase.from('settings').select('*').single().then(({ data }) => {
       if (data) { setSettings(data); document.title = data.site_name; }
     });
-    // Ambil Links
     fetchLinks();
   }
 
@@ -74,77 +64,41 @@ export default function Home() {
     if (json.success) setLinks(json.data || []);
   }
 
-  // --- 3. FUNGSI ACTION ---
-  const showToast = (msg: string, type: 'success'|'error') => {
-    setToast({ msg, type: type === 'success' ? 'toast-success' : 'toast-error' });
-  };
+  const showToast = (msg: string, type: 'success'|'error') => setToast({ msg, type });
 
+  // === HANDLERS ===
   const handleLogin = async (e: FormEvent) => {
     e.preventDefault();
     setLoading(true);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
-    if (error) showToast("Login Gagal: " + error.message, "error");
+    if (error) showToast("Login Failed", "error");
   };
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    setLinks([]);
-  };
-
-  // SHORTEN BARU
   const handleShorten = async (e: FormEvent) => {
     e.preventDefault();
     if (!longUrl) return;
-
-    setViewState('loading');
-    
+    setLoading(true);
     try {
       const res = await fetch('/api/save-link', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({ url: longUrl })
       });
       const data = await res.json();
-
       if (data.success) {
-        setShortUrl(`https://tollsfakelink.vercel.app/${data.shortId}`);
-        setViewState('result');
+        showToast("Link Created Successfully!", "success");
         setLongUrl("");
         fetchLinks();
-        showToast("Link Berhasil Dibuat!", "success");
+        setActiveTab(1); // Auto switch to list
       } else {
-        setViewState('form');
-        showToast(data.error || "Gagal", "error");
+        showToast(data.error, "error");
       }
-    } catch {
-      setViewState('form');
-      showToast("Error Koneksi", "error");
-    }
-  };
-
-  // SIMPAN EDITAN
-  const handleSaveEdit = async () => {
-    if (!editingId) return;
-    setLoading(true);
-    await fetch('/api/links', { method: 'PATCH', body: JSON.stringify({ id: editingId, newUrl: editUrlVal }) });
-    setEditingId(null); // Keluar mode edit
-    setEditUrlVal("");
+    } catch { showToast("Network Error", "error"); }
     setLoading(false);
-    fetchLinks();
-    showToast("Link Berhasil Diedit", "success");
   };
 
-  // HAPUS
-  const handleDelete = async (id: string) => {
-    if(!confirm("Yakin hapus link ini?")) return;
-    await fetch('/api/links', { method: 'DELETE', body: JSON.stringify({ id }) });
-    setLinks(links.filter(l => l.id !== id));
-    showToast("Terhapus", "success");
-  };
-
-  // SETTINGS
-  const handleSaveSettings = async () => {
+  const saveSettings = async () => {
     setLoading(true);
     await supabase.from('settings').update({
       site_name: settings.site_name,
@@ -153,251 +107,230 @@ export default function Home() {
       histats_id: settings.histats_id
     }).eq('id', 1);
     setLoading(false);
-    showToast("Pengaturan Disimpan!", "success");
+    showToast("Settings Saved!", "success");
   };
 
-  // --- 4. HELPER ---
-  const copyText = (text: string) => {
+  const handleSaveEdit = async () => {
+    if (!editingId) return;
+    await fetch('/api/links', { method: 'PATCH', body: JSON.stringify({ id: editingId, newUrl: editUrlVal }) });
+    setEditingId(null);
+    fetchLinks();
+    showToast("Link Updated", "success");
+  };
+
+  const handleDelete = async (id: string) => {
+    if(!confirm("Are you sure?")) return;
+    await fetch('/api/links', { method: 'DELETE', body: JSON.stringify({ id }) });
+    setLinks(links.filter(l => l.id !== id));
+    showToast("Link Deleted", "success");
+  };
+
+  const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
-    showToast("Disalin ke clipboard", "success");
+    showToast("Copied to Clipboard", "success");
   };
 
-  const startEdit = (link: any) => {
-    setEditingId(link.id);
-    setEditUrlVal(link.url);
-    window.scrollTo({ top: 0, behavior: 'smooth' }); // Scroll ke atas biar keliatan formnya
+  const getFavicon = (url: string) => {
+    try { return `https://www.google.com/s2/favicons?domain=${new URL(url).hostname}&sz=32`; }
+    catch { return ""; }
   };
 
-  // PAGINATION LOGIC
+  // Pagination Logic
   const indexOfLastItem = currentPage * ITEMS_PER_PAGE;
   const indexOfFirstItem = indexOfLastItem - ITEMS_PER_PAGE;
   const currentItems = links.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(links.length / ITEMS_PER_PAGE);
 
-
-  // ==========================================
-  // BAGIAN 2: TAMPILAN (VIEW) - BOOTSTRAP 3
-  // ==========================================
+  // === RENDER ===
   return (
     <>
-      {/* TOAST NOTIF */}
-      {toast && <div className={`toast-msg ${toast.type}`}>{toast.msg}</div>}
+      {/* TOAST */}
+      {toast && (
+        <div className="toast-wrap">
+          <div className="toast-box">
+            <span className={`material-icons-round ${toast.type === 'success' ? 'text-success' : 'text-error'}`}>
+              {toast.type === 'success' ? 'check_circle' : 'error'}
+            </span>
+            {toast.msg}
+          </div>
+        </div>
+      )}
 
-      {/* LOGIN POPUP (BLUR BACKGROUND) */}
+      {/* LOGIN POPUP */}
       {!session && (
         <div className="login-backdrop">
-          <div className="login-card">
-            <h3 className="text-center" style={{marginTop:0, fontWeight:'bold', marginBottom:20}}>LOGIN ADMIN</h3>
+          <div className="login-modal">
+            <div style={{marginBottom:20}}>
+              <span className="material-icons-round" style={{fontSize:40, color:'#3b82f6'}}>lock</span>
+            </div>
+            <h2 style={{color:'#fff', margin:'0 0 20px 0'}}>Admin Access</h2>
             <form onSubmit={handleLogin}>
-              <div className="form-group">
-                <input type="email" className="form-control input-lg" placeholder="Email Address" value={email} onChange={e=>setEmail(e.target.value)} required />
+              <div style={{marginBottom:15}}>
+                <input className="input-dark" type="email" placeholder="Email" value={email} onChange={e=>setEmail(e.target.value)} />
               </div>
-              <div className="form-group">
-                <input type="password" className="form-control input-lg" placeholder="Password" value={password} onChange={e=>setPassword(e.target.value)} required />
+              <div style={{marginBottom:25}}>
+                <input className="input-dark" type="password" placeholder="Password" value={password} onChange={e=>setPassword(e.target.value)} />
               </div>
-              <button className="btn btn-primary btn-block btn-lg" disabled={loading}>
-                {loading ? 'MEMERIKSA...' : 'MASUK DASHBOARD'}
+              <button className="btn btn-primary" style={{width:'100%'}} disabled={loading}>
+                {loading ? 'Authenticating...' : 'LOGIN'}
               </button>
             </form>
           </div>
         </div>
       )}
 
-      {/* DASHBOARD AREA */}
+      {/* MAIN APP */}
       {session && (
-      <>
-        {/* NAVBAR */}
-        <nav className="navbar navbar-custom navbar-fixed-top">
-          <div className="container">
-            <div className="navbar-header" style={{width:'100%'}}>
-              <button onClick={handleLogout} className="btn btn-danger btn-sm pull-right navbar-right-btn">LOGOUT</button>
-              <a className="navbar-brand" href="#">{settings.site_name}</a>
+        <>
+          {/* NAVBAR */}
+          <nav className="navbar-glass">
+            <div className="nav-container">
+              <a href="#" className="brand-logo">
+                {/* SVG LOGO */}
+                <svg className="brand-svg" viewBox="0 0 24 24">
+                  <path d="M12 2L2 7l10 5 10-5-10-5zm0 9l2.5-1.25L12 8.5l-2.5 1.25L12 11zm0 2.5l-5-2.5-5 2.5L12 22l10-8.5-5-2.5-5 2.5z"/>
+                </svg>
+                {settings.site_name}
+              </a>
+              <button onClick={async () => { await supabase.auth.signOut(); setLinks([]); }} className="btn btn-outline" style={{padding:'5px 15px', fontSize:'12px'}}>
+                LOGOUT
+              </button>
             </div>
-          </div>
-        </nav>
+          </nav>
 
-        <div className="container">
-          <div className="row">
-            <div className="col-md-8 col-md-offset-2">
+          <div style={{maxWidth:'800px', margin:'0 auto', padding:'0 20px'}}>
+            
+            {/* CARD 1: SHORTENER */}
+            <div className="card-dark">
+              <div style={{textAlign:'center', marginBottom:20}}>
+                <h2 style={{margin:0, fontWeight:700, color:'#fff'}}>Create Short Link</h2>
+                <p style={{color:'#666', margin:'5px 0 0 0'}}>Paste your long URL below</p>
+              </div>
               
-              {/* KOTAK UTAMA (CREATE / EDIT) */}
-              <div className="main-box">
-                <div className="box-header">
-                  <h2>{editingId ? "Edit Link" : (viewState==='result' ? "Link Siap!" : "Shorten URL")}</h2>
-                  {!editingId && viewState==='form' && <p className="text-muted">Masukkan URL panjang di bawah ini</p>}
-                </div>
-
-                <div className="box-body">
-                  
-                  {/* MODE EDIT LINK (MUNCUL JIKA KLIK TOMBOL EDIT DI TABEL) */}
-                  {editingId ? (
-                    <div>
-                      <div className="form-group">
-                        <label>Edit URL Asli:</label>
-                        <input className="form-control input-lg" value={editUrlVal} onChange={e=>setEditUrlVal(e.target.value)} />
-                      </div>
-                      <div className="row">
-                        <div className="col-xs-6">
-                          <button className="btn btn-success btn-block btn-lg" onClick={handleSaveEdit} disabled={loading}>SIMPAN</button>
-                        </div>
-                        <div className="col-xs-6">
-                          <button className="btn btn-default btn-block btn-lg" onClick={()=>setEditingId(null)}>BATAL</button>
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    /* MODE NORMAL (CREATE) */
-                    <>
-                      {viewState === 'form' && (
-                        <form onSubmit={handleShorten}>
-                          <div className="input-group input-group-lg">
-                            <input type="url" className="form-control input-lg-custom" placeholder="https://..." value={longUrl} onChange={e=>setLongUrl(e.target.value)} required />
-                            <span className="input-group-btn">
-                              <button className="btn btn-lg-custom" type="submit">SHORTEN</button>
-                            </span>
-                          </div>
-                        </form>
-                      )}
-
-                      {viewState === 'loading' && (
-                        <div className="text-center">
-                          <h3>Memproses...</h3>
-                        </div>
-                      )}
-
-                      {viewState === 'result' && (
-                        <div className="text-center">
-                          <div className="input-group input-group-lg">
-                            <input type="text" className="form-control input-lg-custom" value={shortUrl} readOnly style={{background:'#fff'}} />
-                            <span className="input-group-btn">
-                              <button className="btn btn-lg-custom" style={{background:'#27ae60'}} onClick={()=>copyText(shortUrl)}>COPY</button>
-                            </span>
-                          </div>
-                          <br/>
-                          <a style={{cursor:'pointer', textDecoration:'underline'}} onClick={()=>{setViewState('form'); setLongUrl('');}}>Buat Link Lagi</a>
-                        </div>
-                      )}
-                    </>
-                  )}
-
-                </div>
-              </div>
-
-              {/* TOMBOL TOGGLE LIST */}
-              <div className="text-center">
-                <button className="btn-pill" onClick={()=>setShowList(!showList)}>
-                  <span className="glyphicon glyphicon-list"></span> {showList ? 'SEMBUNYIKAN LIST' : 'LIHAT DAFTAR LINK'}
-                </button>
-              </div>
-
-              {/* TABEL LIST (MUNCUL JIKA SHOWLIST TRUE) */}
-              {showList && (
-                <div className="table-container">
-                  <div className="table-responsive">
-                    <table className="table table-hover">
-                      <thead>
-                        <tr>
-                          <th style={{width:50}}>Img</th>
-                          <th>Short Link</th>
-                          <th>Link Asli</th>
-                          <th>Klik</th>
-                          <th className="text-right">Aksi</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {currentItems.length === 0 ? (
-                          <tr><td colSpan={5} className="text-center">Belum ada data link.</td></tr>
-                        ) : currentItems.map(link => (
-                          <tr key={link.id}>
-                            <td>
-                              <img src={`https://www.google.com/s2/favicons?domain=${new URL(link.url).hostname}&sz=32`} className="img-favicon" onError={(e:any)=>e.target.style.display='none'} />
-                            </td>
-                            <td>
-                              <span className="link-title">{link.id}</span>
-                            </td>
-                            <td>
-                              <span className="link-url">{link.url}</span>
-                            </td>
-                            <td><span className="badge">{link.clicks}</span></td>
-                            <td className="text-right">
-                              {/* TOMBOL COPY */}
-                              <button className="btn-icon-action" title="Copy" onClick={()=>copyText(`https://tollsfakelink.vercel.app/${link.id}`)}>
-                                <span className="glyphicon glyphicon-copy"></span>
-                              </button>
-                              
-                              {/* TOMBOL EDIT (PENTING: INI MEMANGGIL FUNGSI EDIT DI ATAS) */}
-                              <button className="btn-icon-action" title="Edit" onClick={()=>startEdit(link)}>
-                                <span className="glyphicon glyphicon-pencil"></span>
-                              </button>
-                              
-                              {/* TOMBOL DELETE */}
-                              <button className="btn-icon-action btn-icon-del" title="Hapus" onClick={()=>handleDelete(link.id)}>
-                                <span className="glyphicon glyphicon-trash"></span>
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                  
-                  {/* PAGINATION */}
-                  <div className="text-center" style={{marginTop:20}}>
-                    <button className="btn btn-default btn-sm" disabled={currentPage===1} onClick={()=>setCurrentPage(currentPage-1)}>Prev</button>
-                    <span style={{margin:'0 15px', fontWeight:'bold'}}>{currentPage} / {totalPages||1}</span>
-                    <button className="btn btn-default btn-sm" disabled={currentPage>=totalPages} onClick={()=>setCurrentPage(currentPage+1)}>Next</button>
-                  </div>
-                </div>
-              )}
-
-              {/* TOMBOL TOGGLE SETTINGS */}
-              <div className="text-center" style={{marginTop:30}}>
-                <button className="btn-icon-action" style={{width:50, height:50, fontSize:24}} onClick={()=>setShowSettings(!showSettings)}>
-                  <span className="glyphicon glyphicon-cog"></span>
-                </button>
-                <div style={{fontSize:11, color:'#999', marginTop:5}}>PENGATURAN</div>
-              </div>
-
-              {/* SETTINGS AREA */}
-              {showSettings && (
-                <div className="settings-box">
-                  <h4 style={{marginTop:0, marginBottom:20, fontWeight:'bold'}}>Konfigurasi Website</h4>
-                  
-                  {/* CHECKBOX ON/OFF */}
-                  <div className="custom-checkbox" onClick={()=>setSettings({...settings, offer_active: !settings.offer_active})}>
-                    <label style={{fontWeight:'bold', width:'100%', cursor:'pointer'}}>
-                      <input type="checkbox" checked={settings.offer_active} readOnly />
-                      AKTIFKAN REDIRECT OFFER?
-                    </label>
-                    <div style={{fontSize:12, color:'#777', marginTop:5}}>Jika dicentang, pengunjung manusia akan dialihkan ke Link Offer.</div>
-                  </div>
-
-                  <div className="form-group">
-                    <label>Nama Situs</label>
-                    <input className="form-control" value={settings.site_name} onChange={e=>setSettings({...settings, site_name:e.target.value})} />
-                  </div>
-                  <div className="form-group">
-                    <label>Link Offer (Tujuan Redirect)</label>
-                    <textarea className="form-control" rows={2} value={settings.offer_url} onChange={e=>setSettings({...settings, offer_url:e.target.value})}></textarea>
-                  </div>
-                  <div className="form-group">
-                    <label>Histats ID</label>
-                    <input className="form-control" type="number" value={settings.histats_id} onChange={e=>setSettings({...settings, histats_id:e.target.value})} />
-                  </div>
-                  <button className="btn btn-primary btn-block btn-lg" onClick={handleSaveSettings} disabled={loading}>
-                    {loading ? 'MENYIMPAN...' : 'SIMPAN PENGATURAN'}
+              {!editingId ? (
+                <form onSubmit={handleShorten} style={{display:'flex', gap:10}}>
+                  <input className="input-dark" placeholder="https://example.com/very-long-url..." value={longUrl} onChange={e=>setLongUrl(e.target.value)} />
+                  <button className="btn btn-primary" style={{minWidth:120}} disabled={loading}>
+                    <span className="material-icons-round">bolt</span>
+                    SHORTEN
                   </button>
+                </form>
+              ) : (
+                <div style={{display:'flex', gap:10}}>
+                  <input className="input-dark" value={editUrlVal} onChange={e=>setEditUrlVal(e.target.value)} />
+                  <button className="btn btn-primary" onClick={handleSaveEdit}>SAVE</button>
+                  <button className="btn btn-outline" onClick={()=>setEditingId(null)}>CANCEL</button>
                 </div>
               )}
-
             </div>
-          </div>
-        </div>
 
-        <div className="text-center" style={{padding:40, color:'#bbb'}}>
-          &copy; 2026 {settings.site_name}. All Rights Reserved.
-        </div>
-      </>
+            {/* TABS BUTTONS */}
+            <div className="tab-container">
+              <div className={`tab-btn ${activeTab === 1 ? 'active' : ''}`} onClick={()=>setActiveTab(activeTab === 1 ? 0 : 1)}>
+                <span className="material-icons-round">list</span> My Links
+              </div>
+              <div className={`tab-btn ${activeTab === 2 ? 'active' : ''}`} onClick={()=>setActiveTab(activeTab === 2 ? 0 : 2)}>
+                <span className="material-icons-round">settings</span> Settings
+              </div>
+            </div>
+
+            {/* TAB 1: LIST */}
+            {activeTab === 1 && (
+              <div className="card-dark">
+                <div style={{marginBottom:15, display:'flex', justifyContent:'space-between', alignItems:'center'}}>
+                  <h3 style={{margin:0}}>All Links</h3>
+                  <span style={{background:'#333', padding:'2px 8px', borderRadius:4, fontSize:12}}>{links.length} Total</span>
+                </div>
+                
+                <div className="table-responsive">
+                  <table className="table-dark">
+                    <thead>
+                      <tr>
+                        <th style={{width:50}}>Icon</th>
+                        <th>Short Link</th>
+                        <th>Original</th>
+                        <th>Clicks</th>
+                        <th style={{textAlign:'right'}}>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {currentItems.map(link => (
+                        <tr key={link.id}>
+                          <td><img src={getFavicon(link.url)} className="favicon" onError={(e:any)=>e.target.style.display='none'} /></td>
+                          <td>
+                            <a href={`https://tollsfakelink.vercel.app/${link.id}`} target="_blank" className="link-main">{link.id}</a>
+                          </td>
+                          <td><span className="link-sub">{link.url}</span></td>
+                          <td><span style={{background:'#222', padding:'2px 6px', borderRadius:4, fontSize:12}}>{link.clicks}</span></td>
+                          <td style={{textAlign:'right'}}>
+                            <button className="action-btn" onClick={()=>copyToClipboard(`https://tollsfakelink.vercel.app/${link.id}`)}>
+                              <span className="material-icons-round" style={{fontSize:18}}>content_copy</span>
+                            </button>
+                            <button className="action-btn" onClick={()=>{setEditingId(link.id); setEditUrlVal(link.url); window.scrollTo(0,0);}}>
+                              <span className="material-icons-round" style={{fontSize:18}}>edit</span>
+                            </button>
+                            <button className="action-btn delete" onClick={()=>handleDelete(link.id)}>
+                              <span className="material-icons-round" style={{fontSize:18}}>delete</span>
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* PAGINATION */}
+                <div style={{display:'flex', justifyContent:'center', gap:15, marginTop:20, alignItems:'center'}}>
+                  <button className="btn btn-outline" disabled={currentPage===1} onClick={()=>setCurrentPage(currentPage-1)}>Prev</button>
+                  <span style={{fontSize:14, color:'#666'}}>Page {currentPage} of {totalPages||1}</span>
+                  <button className="btn btn-outline" disabled={currentPage>=totalPages} onClick={()=>setCurrentPage(currentPage+1)}>Next</button>
+                </div>
+              </div>
+            )}
+
+            {/* TAB 2: SETTINGS */}
+            {activeTab === 2 && (
+              <div className="card-dark">
+                <h3 style={{marginTop:0, marginBottom:20}}>Configuration</h3>
+                
+                {/* CUSTOM SWITCH */}
+                <div className="switch-wrapper" onClick={()=>setSettings({...settings, offer_active: !settings.offer_active})}>
+                  <div>
+                    <div style={{fontWeight:600, color:'#fff'}}>Redirect Offer</div>
+                    <div style={{fontSize:12, color:'#666'}}>Enable redirect for human visitors</div>
+                  </div>
+                  <div className={`switch-box ${settings.offer_active ? 'on' : ''}`}>
+                    <div className="switch-circle"></div>
+                  </div>
+                </div>
+
+                <div style={{marginBottom:15}}>
+                  <label style={{display:'block', marginBottom:8, fontSize:13, color:'#888'}}>Site Name</label>
+                  <input className="input-dark" value={settings.site_name} onChange={e=>setSettings({...settings, site_name: e.target.value})} />
+                </div>
+
+                <div style={{marginBottom:15}}>
+                  <label style={{display:'block', marginBottom:8, fontSize:13, color:'#888'}}>Offer URL (Target)</label>
+                  <input className="input-dark" value={settings.offer_url} onChange={e=>setSettings({...settings, offer_url: e.target.value})} />
+                </div>
+
+                <div style={{marginBottom:25}}>
+                  <label style={{display:'block', marginBottom:8, fontSize:13, color:'#888'}}>Histats ID</label>
+                  <input className="input-dark" type="number" value={settings.histats_id} onChange={e=>setSettings({...settings, histats_id: e.target.value})} />
+                </div>
+
+                <button className="btn btn-primary" style={{width:'100%'}} onClick={saveSettings} disabled={loading}>
+                  {loading ? 'SAVING...' : 'SAVE SETTINGS'}
+                </button>
+              </div>
+            )}
+
+          </div>
+          
+          <div style={{textAlign:'center', padding:30, color:'#444', fontSize:12}}>
+            &copy; 2026 {settings.site_name}. Pro Version.
+          </div>
+        </>
       )}
     </>
   );
