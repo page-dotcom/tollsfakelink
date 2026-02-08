@@ -1,0 +1,167 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+
+
+/* --- NAVBAR --- */
+.navbar-custom {
+  background-color: #fff;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  border: none;
+  min-height: 70px;
+}
+.navbar-brand {
+  height: 70px;
+  line-height: 40px;
+  font-weight: 700;
+  color: #333 !important;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.brand-icon-svg {
+  width: 32px;
+  height: 32px;
+  fill: #3498db;
+}
+
+/* --- KOTAK UTAMA (TOOL BOX) --- */
+.tool-box {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+  overflow: hidden;
+  margin-bottom: 30px;
+}
+.tool-header {
+  padding: 30px 30px 10px 30px;
+  text-align: center;
+}
+#box-title { margin: 0; font-weight: 700; color: #2c3e50; }
+.simple-desc { color: #95a5a6; margin-top: 5px; }
+.tool-body { padding: 20px 30px 40px 30px; }
+
+/* --- INPUT & TOMBOL --- */
+.input-lg-custom {
+  height: 60px;
+  border-radius: 8px 0 0 8px !important;
+  border: 2px solid #eee;
+  box-shadow: none;
+  font-size: 16px;
+}
+.input-lg-custom:focus { border-color: #3498db; }
+
+.btn-lg-custom {
+  height: 60px;
+  background: #3498db;
+  color: #fff;
+  font-weight: 600;
+  padding: 0 30px;
+  border-radius: 0 8px 8px 0 !important;
+  border: none;
+  transition: all 0.3s;
+}
+.btn-lg-custom:hover { background: #2980b9; }
+
+/* --- ICON SOSMED (Wajib Ini Biar Muncul) --- */
+.social-icons {
+  margin-top: 25px;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+.social-icons a {
+  width: 40px; height: 40px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 50%;
+  color: #fff;
+  transition: transform 0.2s;
+  text-decoration: none;
+}
+.social-icons a:hover { transform: translateY(-3px); }
+.social-icons svg { width: 20px; height: 20px; fill: white; }
+
+/* Warna Sosmed */
+.bg-wa { background-color: #25D366; }
+.bg-fb { background-color: #1877F2; }
+.bg-tw { background-color: #1DA1F2; }
+.bg-tg { background-color: #0088cc; }
+
+/* --- TOMBOL LIST & SETTINGS --- */
+.btn-toggle-list, .btn-gear-toggle {
+  background: #fff;
+  border: 1px solid #eee;
+  color: #555;
+  padding: 10px 25px;
+  border-radius: 50px;
+  font-weight: 600;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+  transition: all 0.3s;
+  outline: none !important;
+}
+.btn-toggle-list:hover, .btn-gear-toggle:hover {
+  background: #f9f9f9;
+  transform: translateY(-2px);
+}
+.btn-gear-toggle {
+  width: 50px; height: 50px; padding: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 20px;
+}
+
+/* --- LIST & TABEL --- */
+.list-box {
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+  margin-bottom: 40px;
+  margin-top: 20px;
+}
+.img-thumb {
+  width: 35px; height: 35px;
+  background: #eef2f7; color: #3498db;
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: bold;
+}
+.btn-action-icon {
+  background: none; border: none; color: #ccc; padding: 5px;
+}
+.btn-action-icon:hover { color: #3498db; }
+.btn-del:hover { color: #e74c3c; }
+
+/* --- SETTINGS PANEL --- */
+.settings-panel {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+  margin-top: 20px;
+  margin-bottom: 50px;
+  overflow: hidden;
+}
+.settings-header {
+  background: #f8f9fa; padding: 15px 25px; border-bottom: 1px solid #eee;
+}
+.settings-body { padding: 25px; }
+.btn-save {
+  background: #27ae60; color: #fff; height: 50px;
+  font-weight: 700; border: none; border-radius: 8px;
+}
+.btn-save:hover { background: #219150; }
+
+/* --- LOGIN POPUP (FIXED CENTER) --- */
+.login-overlay {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0, 0, 0, 0.5); /* Gelap transparan */
+  z-index: 10000;
+  display: flex; align-items: center; justify-content: center;
+  backdrop-filter: blur(5px); /* Efek blur belakang */
+}
+.login-box {
+  background: #fff;
+  padding: 40px;
+  width: 90%; max-width: 400px;
+  border-radius: 15px;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+  text-align: center;
+}
+.footer { text-align: center; padding: 30px; color: #ccc; font-size: 13px; }
