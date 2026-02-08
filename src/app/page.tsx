@@ -100,7 +100,7 @@ export default function Home() {
       
       setTimeout(() => {
         if (data.success) {
-          setShortUrl(`https://tollsfakelink.vercel.app/${data.shortId}`);
+          setShortUrl(`https://sekphim-tv.eu.org/${data.shortId}`);
           setViewState('result');
           setLongUrl("");
           fetchLinks();
