@@ -1,66 +1,70 @@
 'use client';
 
+// ==========================================
+// BAGIAN 1: SISTEM & LOGIC (CONTROLLER)
+// ==========================================
 import { useState, useEffect, FormEvent } from 'react';
 import { supabase } from '@/data/supabase';
 
 export default function Home() {
-  // STATE DATA
+  // STATE AUTH & DATA
   const [session, setSession] = useState<any>(null);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [loginLoading, setLoginLoading] = useState(false);
-
-  // SETTINGS DEFAULT
+  const [links, setLinks] = useState<any[]>([]);
   const [settings, setSettings] = useState({
     site_name: 'ShortCuts',
     offer_url: '',
-    offer_active: false, // CHECKBOX DEFAULT
+    offer_active: false,
     histats_id: ''
   });
 
-  // UI STATE
-  const [viewState, setViewState] = useState<'form' | 'loading' | 'result'>('form');
-  const [progress, setProgress] = useState(0);
+  // STATE INPUT FORM
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [longUrl, setLongUrl] = useState("");
   const [shortUrl, setShortUrl] = useState("");
-  const [links, setLinks] = useState<any[]>([]);
+  
+  // STATE EDITING
+  const [editingId, setEditingId] = useState<string | null>(null); // ID link yang lagi diedit
+  const [editUrlVal, setEditUrlVal] = useState("");
 
-  // TOGGLES (DEFAULT HIDDEN)
+  // STATE UI (TAMPILAN)
+  const [viewState, setViewState] = useState<'form' | 'loading' | 'result'>('form');
   const [showList, setShowList] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-
-  // EDIT & FEEDBACK
-  const [saveBtnText, setSaveBtnText] = useState("SIMPAN PENGATURAN");
-  const [copyBtnText, setCopyBtnText] = useState("COPY");
-  const [toast, setToast] = useState<{msg: string, type: 'success'|'error'|''} | null>(null);
-
-  // PAGINATION
+  const [loading, setLoading] = useState(false);
+  const [toast, setToast] = useState<{msg: string, type: string} | null>(null);
+  
+  // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 5;
 
-  // --- INIT ---
+  // --- 1. INIT LOAD ---
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       if (session) loadData();
     });
-    supabase.auth.onAuthStateChange((_event, session) => {
+    supabase.auth.onAuthStateChange((_e, session) => {
       setSession(session);
       if (session) loadData();
     });
   }, []);
 
+  // Timer Toast
   useEffect(() => {
     if (toast) {
-      const timer = setTimeout(() => setToast(null), 3000);
-      return () => clearTimeout(timer);
+      const t = setTimeout(() => setToast(null), 3000);
+      return () => clearTimeout(t);
     }
   }, [toast]);
 
+  // --- 2. FUNGSI DATA ---
   function loadData() {
+    // Ambil Settings
     supabase.from('settings').select('*').single().then(({ data }) => {
       if (data) { setSettings(data); document.title = data.site_name; }
     });
+    // Ambil Links
     fetchLinks();
   }
 
@@ -70,12 +74,16 @@ export default function Home() {
     if (json.success) setLinks(json.data || []);
   }
 
-  // --- ACTIONS ---
+  // --- 3. FUNGSI ACTION ---
+  const showToast = (msg: string, type: 'success'|'error') => {
+    setToast({ msg, type: type === 'success' ? 'toast-success' : 'toast-error' });
+  };
+
   const handleLogin = async (e: FormEvent) => {
     e.preventDefault();
-    setLoginLoading(true);
+    setLoading(true);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
-    setLoginLoading(false);
+    setLoading(false);
     if (error) showToast("Login Gagal: " + error.message, "error");
   };
 
@@ -84,16 +92,13 @@ export default function Home() {
     setLinks([]);
   };
 
-  const showToast = (msg: string, type: 'success'|'error') => setToast({ msg, type });
-
+  // SHORTEN BARU
   const handleShorten = async (e: FormEvent) => {
     e.preventDefault();
     if (!longUrl) return;
 
     setViewState('loading');
-    let p = 0;
-    const interval = setInterval(() => { p += 10; setProgress(p); if(p>=90) clearInterval(interval); }, 50);
-
+    
     try {
       const res = await fetch('/api/save-link', {
         method: 'POST',
@@ -101,284 +106,296 @@ export default function Home() {
         body: JSON.stringify({ url: longUrl })
       });
       const data = await res.json();
-      clearInterval(interval);
-      setProgress(100);
 
-      setTimeout(() => {
-        if (data.success) {
-          const result = `https://tollsfakelink.vercel.app/${data.shortId}`;
-          setShortUrl(result);
-          setViewState('result');
-          setLongUrl("");
-          fetchLinks();
-          setCurrentPage(1);
-          showToast("Link Berhasil!", "success");
-        } else {
-          setViewState('form');
-          showToast(data.error || "Gagal", "error");
-        }
-      }, 500);
-    } catch { setViewState('form'); showToast("Error Koneksi", "error"); }
+      if (data.success) {
+        setShortUrl(`https://tollsfakelink.vercel.app/${data.shortId}`);
+        setViewState('result');
+        setLongUrl("");
+        fetchLinks();
+        showToast("Link Berhasil Dibuat!", "success");
+      } else {
+        setViewState('form');
+        showToast(data.error || "Gagal", "error");
+      }
+    } catch {
+      setViewState('form');
+      showToast("Error Koneksi", "error");
+    }
   };
 
+  // SIMPAN EDITAN
+  const handleSaveEdit = async () => {
+    if (!editingId) return;
+    setLoading(true);
+    await fetch('/api/links', { method: 'PATCH', body: JSON.stringify({ id: editingId, newUrl: editUrlVal }) });
+    setEditingId(null); // Keluar mode edit
+    setEditUrlVal("");
+    setLoading(false);
+    fetchLinks();
+    showToast("Link Berhasil Diedit", "success");
+  };
+
+  // HAPUS
+  const handleDelete = async (id: string) => {
+    if(!confirm("Yakin hapus link ini?")) return;
+    await fetch('/api/links', { method: 'DELETE', body: JSON.stringify({ id }) });
+    setLinks(links.filter(l => l.id !== id));
+    showToast("Terhapus", "success");
+  };
+
+  // SETTINGS
   const handleSaveSettings = async () => {
-    setSaveBtnText("MENYIMPAN...");
+    setLoading(true);
     await supabase.from('settings').update({
       site_name: settings.site_name,
       offer_url: settings.offer_url,
       offer_active: settings.offer_active,
       histats_id: settings.histats_id
     }).eq('id', 1);
-    setSaveBtnText("BERHASIL!");
-    setTimeout(() => setSaveBtnText("SIMPAN PENGATURAN"), 2000);
+    setLoading(false);
+    showToast("Pengaturan Disimpan!", "success");
   };
 
-  const handleDelete = async (id: string) => {
-    if(!confirm("Hapus?")) return;
-    await fetch('/api/links', { method: 'DELETE', body: JSON.stringify({ id }) });
-    setLinks(links.filter(l => l.id !== id));
-    showToast("Terhapus", "success");
-  };
-
-  const handleCopy = (text: string) => {
+  // --- 4. HELPER ---
+  const copyText = (text: string) => {
     navigator.clipboard.writeText(text);
-    setCopyBtnText("COPIED!");
-    setTimeout(() => setCopyBtnText("COPY"), 1500);
+    showToast("Disalin ke clipboard", "success");
   };
 
-  // Pagination Logic
+  const startEdit = (link: any) => {
+    setEditingId(link.id);
+    setEditUrlVal(link.url);
+    window.scrollTo({ top: 0, behavior: 'smooth' }); // Scroll ke atas biar keliatan formnya
+  };
+
+  // PAGINATION LOGIC
   const indexOfLastItem = currentPage * ITEMS_PER_PAGE;
   const indexOfFirstItem = indexOfLastItem - ITEMS_PER_PAGE;
   const currentItems = links.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(links.length / ITEMS_PER_PAGE);
 
-  // HTML BOOTSTRAP 3 ORIGINAL (PERSIS REQUEST LU)
+
+  // ==========================================
+  // BAGIAN 2: TAMPILAN (VIEW) - BOOTSTRAP 3
+  // ==========================================
   return (
     <>
-      {/* TOAST NOTIFIKASI */}
-      {toast && (
-        <div style={{
-          position: 'fixed', top: 20, left: '50%', transform: 'translateX(-50%)',
-          background: toast.type === 'success' ? '#27ae60' : '#c0392b', color: '#fff',
-          padding: '10px 25px', borderRadius: 50, zIndex: 999999, fontWeight: 'bold', boxShadow: '0 5px 15px rgba(0,0,0,0.2)'
-        }}>
-          {toast.msg}
-        </div>
-      )}
+      {/* TOAST NOTIF */}
+      {toast && <div className={`toast-msg ${toast.type}`}>{toast.msg}</div>}
 
-      {/* LOGIN POPUP (TAMPILAN RAPI DI TENGAH) */}
+      {/* LOGIN POPUP (BLUR BACKGROUND) */}
       {!session && (
-        <div className="login-overlay">
-          <div className="login-box">
-             <h3 style={{fontWeight:'bold', marginBottom:20, color:'#333', marginTop:0}}>LOGIN ADMIN</h3>
-             <form onSubmit={handleLogin}>
-               <div className="form-group">
-                 <input type="email" className="form-control input-lg" placeholder="Email" style={{height:50}} value={email} onChange={e=>setEmail(e.target.value)} required />
-               </div>
-               <div className="form-group">
-                 <input type="password" className="form-control input-lg" placeholder="Password" style={{height:50}} value={password} onChange={e=>setPassword(e.target.value)} required />
-               </div>
-               <button className="btn btn-primary btn-block btn-lg" style={{height:50, fontWeight:'bold'}} disabled={loginLoading}>{loginLoading?'LOADING...':'MASUK'}</button>
-             </form>
+        <div className="login-backdrop">
+          <div className="login-card">
+            <h3 className="text-center" style={{marginTop:0, fontWeight:'bold', marginBottom:20}}>LOGIN ADMIN</h3>
+            <form onSubmit={handleLogin}>
+              <div className="form-group">
+                <input type="email" className="form-control input-lg" placeholder="Email Address" value={email} onChange={e=>setEmail(e.target.value)} required />
+              </div>
+              <div className="form-group">
+                <input type="password" className="form-control input-lg" placeholder="Password" value={password} onChange={e=>setPassword(e.target.value)} required />
+              </div>
+              <button className="btn btn-primary btn-block btn-lg" disabled={loading}>
+                {loading ? 'MEMERIKSA...' : 'MASUK DASHBOARD'}
+              </button>
+            </form>
           </div>
         </div>
       )}
 
-      {/* DASHBOARD UTAMA */}
+      {/* DASHBOARD AREA */}
       {session && (
       <>
+        {/* NAVBAR */}
         <nav className="navbar navbar-custom navbar-fixed-top">
-            <div className="container-fluid">
-                <div className="navbar-header" style={{width:'100%', display:'flex', justifyContent:'space-between', alignItems:'center'}}>
-                    <a className="navbar-brand" href="#">
-                        <svg className="brand-icon-svg" viewBox="0 0 24 24">
-                            <path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-3.31-2.69-6-6-6c-3.31,0-6,2.69-6,6c0,2.22,1.21,4.15,3,5.19V19 c-2.97-1.35-5-4.42-5-8c0-4.97,4.03-9,9-9s9,4.03,9,9c0,1.86-0.55,3.61-1.5,5.1l-1.45-1.45C18.78,14.16,19.04,13.57,19.14,12.94z M9.64,12.56L7.52,14.68C7.36,14.54,7.18,14.4,7,14.25V17c1.32-0.84,2.2-2.31,2.2-4C9.2,12.89,9.36,12.75,9.64,12.56z M12,8 c2.21,0,4,1.79,4,4s-1.79,4-4,4s-4-1.79-4-4S9.79,8,12,8z"/>
-                        </svg>
-                        {settings.site_name}
-                    </a>
-                    <button onClick={handleLogout} className="btn btn-xs btn-danger" style={{marginTop:20, marginRight:15}}>LOGOUT</button>
-                </div>
+          <div className="container">
+            <div className="navbar-header" style={{width:'100%'}}>
+              <button onClick={handleLogout} className="btn btn-danger btn-sm pull-right navbar-right-btn">LOGOUT</button>
+              <a className="navbar-brand" href="#">{settings.site_name}</a>
             </div>
+          </div>
         </nav>
 
         <div className="container">
-            <div className="row">
-                <div className="col-md-8 col-md-offset-2 col-sm-10 col-sm-offset-1 col-xs-12">
-                    
-                    {/* TOOL BOX UTAMA */}
-                    <div className="tool-box">
-                        <div className="tool-header">
-                            <h2 id="box-title">{viewState === 'result' ? 'Link Ready!' : 'Shorten URL'}</h2>
-                            {viewState === 'form' && <p className="simple-desc" id="desc-text">Paste long URL below</p>}
+          <div className="row">
+            <div className="col-md-8 col-md-offset-2">
+              
+              {/* KOTAK UTAMA (CREATE / EDIT) */}
+              <div className="main-box">
+                <div className="box-header">
+                  <h2>{editingId ? "Edit Link" : (viewState==='result' ? "Link Siap!" : "Shorten URL")}</h2>
+                  {!editingId && viewState==='form' && <p className="text-muted">Masukkan URL panjang di bawah ini</p>}
+                </div>
+
+                <div className="box-body">
+                  
+                  {/* MODE EDIT LINK (MUNCUL JIKA KLIK TOMBOL EDIT DI TABEL) */}
+                  {editingId ? (
+                    <div>
+                      <div className="form-group">
+                        <label>Edit URL Asli:</label>
+                        <input className="form-control input-lg" value={editUrlVal} onChange={e=>setEditUrlVal(e.target.value)} />
+                      </div>
+                      <div className="row">
+                        <div className="col-xs-6">
+                          <button className="btn btn-success btn-block btn-lg" onClick={handleSaveEdit} disabled={loading}>SIMPAN</button>
                         </div>
-
-                        <div className="tool-body">
-                            
-                            {/* FORM INPUT */}
-                            {viewState === 'form' && (
-                            <div id="form-view">
-                                <form onSubmit={handleShorten}>
-                                    <div className="input-group input-group-lg">
-                                        <input type="url" className="form-control input-lg-custom" placeholder="https://..." value={longUrl} onChange={e=>setLongUrl(e.target.value)} required />
-                                        <span className="input-group-btn">
-                                            <button className="btn btn-lg-custom" type="submit">SHORTEN</button>
-                                        </span>
-                                    </div>
-                                </form>
-                            </div>
-                            )}
-
-                            {/* LOADING */}
-                            {viewState === 'loading' && (
-                            <div id="loading-area" style={{textAlign:'center'}}>
-                                <h2 style={{margin:'10px 0', color:'#3498db', fontWeight:700}}>{progress}%</h2>
-                                <small style={{color:'#bbb', letterSpacing:'1px'}}>PROCESSING LINK...</small>
-                            </div>
-                            )}
-
-                            {/* RESULT & SOSMED */}
-                            {viewState === 'result' && (
-                            <div id="result-view">
-                                <div className="input-group input-group-lg">
-                                    <input type="text" className="form-control input-lg-custom input-result" value={shortUrl} readOnly />
-                                    <span className="input-group-btn">
-                                        <button className="btn btn-lg-custom btn-copy-default" type="button" onClick={()=>handleCopy(shortUrl)}>{copyBtnText}</button>
-                                    </span>
-                                </div>
-                                <span className="reset-link" onClick={()=>{setViewState('form'); setLongUrl('');}} style={{display:'block', textAlign:'center', marginTop:15, color:'#999', cursor:'pointer', textDecoration:'underline'}}>Shorten another link</span>
-                                
-                                {/* ICONS SOSMED (Warna dari Global CSS) */}
-                                <div id="share-area">
-                                    <div className="social-icons">
-                                        <a href={`https://api.whatsapp.com/send?text=${shortUrl}`} target="_blank" className="bg-wa"><svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></a>
-                                        <a href={`https://www.facebook.com/sharer/sharer.php?u=${shortUrl}`} target="_blank" className="bg-fb"><svg viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></a>
-                                        <a href={`https://twitter.com/intent/tweet?url=${shortUrl}`} target="_blank" className="bg-tw"><svg viewBox="0 0 24 24"><path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/></svg></a>
-                                        <a href="#" className="bg-tg"><svg viewBox="0 0 24 24"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg></a>
-                                    </div>
-                                </div>
-                            </div>
-                            )}
-
+                        <div className="col-xs-6">
+                          <button className="btn btn-default btn-block btn-lg" onClick={()=>setEditingId(null)}>BATAL</button>
                         </div>
+                      </div>
                     </div>
+                  ) : (
+                    /* MODE NORMAL (CREATE) */
+                    <>
+                      {viewState === 'form' && (
+                        <form onSubmit={handleShorten}>
+                          <div className="input-group input-group-lg">
+                            <input type="url" className="form-control input-lg-custom" placeholder="https://..." value={longUrl} onChange={e=>setLongUrl(e.target.value)} required />
+                            <span className="input-group-btn">
+                              <button className="btn btn-lg-custom" type="submit">SHORTEN</button>
+                            </span>
+                          </div>
+                        </form>
+                      )}
 
-                    {/* BUTTON TOGGLE LIST */}
-                    <div className="text-center">
-                        <button type="button" className="btn-toggle-list" onClick={()=>setShowList(!showList)}>
-                            <span className="glyphicon glyphicon-list-alt"></span> {showList ? 'HIDE LIST' : 'MY URL LIST'}
-                        </button>
-                    </div>
-
-                    {/* LIST AREA (TAMPIL JIKA DIKLIK) */}
-                    <div className="list-box" style={{display: showList ? 'block' : 'none'}}>
-                        <div className="table-responsive">
-                            <table className="table table-hover">
-                                <thead>
-                                    <tr>
-                                        <th>Image</th>
-                                        <th>Short Link</th>
-                                        <th>Original</th>
-                                        <th>Clicks</th>
-                                        <th className="text-right">Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {currentItems.map(link => (
-                                    <tr key={link.id}>
-                                        <td>
-                                            <img src={`https://www.google.com/s2/favicons?domain=${new URL(link.url).hostname}&sz=32`} className="img-thumb" onError={(e:any)=>{e.target.style.display='none'}} />
-                                        </td>
-                                        <td>
-                                            <div className="short-link-text">{link.id}</div>
-                                        </td>
-                                        <td>
-                                            <div className="ori-link-text">{link.url}</div>
-                                        </td>
-                                        <td>
-                                            <span className="badge" style={{background:'#3498db'}}>{link.clicks}</span>
-                                        </td>
-                                        <td className="text-right">
-                                            <button className="btn-action-icon" onClick={()=>handleCopy(`https://tollsfakelink.vercel.app/${link.id}`)}><span className="glyphicon glyphicon-copy"></span></button>
-                                            <button className="btn-action-icon btn-del" onClick={()=>handleDelete(link.id)}><span className="glyphicon glyphicon-trash"></span></button>
-                                        </td>
-                                    </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+                      {viewState === 'loading' && (
+                        <div className="text-center">
+                          <h3>Memproses...</h3>
                         </div>
-                        {/* PAGINATION */}
-                        <div className="pagination-area" style={{textAlign:'center', marginTop:15}}>
-                            <button className="btn btn-default btn-sm" disabled={currentPage===1} onClick={()=>setCurrentPage(currentPage-1)}>Prev</button>
-                            <span style={{margin:'0 10px'}}>Page {currentPage} / {totalPages||1}</span>
-                            <button className="btn btn-default btn-sm" disabled={currentPage>=totalPages} onClick={()=>setCurrentPage(currentPage+1)}>Next</button>
+                      )}
+
+                      {viewState === 'result' && (
+                        <div className="text-center">
+                          <div className="input-group input-group-lg">
+                            <input type="text" className="form-control input-lg-custom" value={shortUrl} readOnly style={{background:'#fff'}} />
+                            <span className="input-group-btn">
+                              <button className="btn btn-lg-custom" style={{background:'#27ae60'}} onClick={()=>copyText(shortUrl)}>COPY</button>
+                            </span>
+                          </div>
+                          <br/>
+                          <a style={{cursor:'pointer', textDecoration:'underline'}} onClick={()=>{setViewState('form'); setLongUrl('');}}>Buat Link Lagi</a>
                         </div>
-                    </div>
-
-                    {/* BUTTON TOGGLE SETTINGS */}
-                    <div className="text-center" style={{marginTop: 30, marginBottom: 20}}>
-                        <button type="button" className="btn-gear-toggle" onClick={()=>setShowSettings(!showSettings)}>
-                            <span className="glyphicon glyphicon-cog"></span>
-                        </button>
-                        <div style={{fontSize:12, color:'#ccc', marginTop:5}}>Settings</div>
-                    </div>
-
-                    {/* SETTINGS AREA (TAMPIL JIKA DIKLIK) */}
-                    <div className="settings-panel" style={{display: showSettings ? 'block' : 'none'}}>
-                        <div className="settings-header">
-                            <h4><span className="glyphicon glyphicon-wrench" style={{fontSize:16}}></span> Konfigurasi Situs</h4>
-                        </div>
-
-                        <div className="settings-body">
-                            
-                            {/* CHECKBOX ON/OFF */}
-                            <div className="form-group" style={{background:'#f9f9f9', padding:10, borderRadius:5, marginBottom:20}}>
-                                <div className="checkbox" style={{margin:0}}>
-                                    <label style={{width:'100%', fontWeight:'bold', cursor:'pointer'}}>
-                                        <input type="checkbox" style={{marginRight:10}} checked={settings.offer_active} onChange={e=>setSettings({...settings, offer_active:e.target.checked})} />
-                                        AKTIFKAN REDIRECT OFFER?
-                                    </label>
-                                </div>
-                            </div>
-
-                            <div className="form-group">
-                                <label>Site Name</label>
-                                <div className="input-group">
-                                    <span className="input-group-addon"><i className="glyphicon glyphicon-home"></i></span>
-                                    <input type="text" className="form-control" value={settings.site_name} onChange={e=>setSettings({...settings, site_name:e.target.value})} />
-                                </div>
-                            </div>
-
-                            <div className="form-group">
-                                <label>URL Offer / Redirect Traffic</label>
-                                <div className="input-group">
-                                    <span className="input-group-addon"><i className="glyphicon glyphicon-share-alt"></i></span>
-                                    <textarea className="form-control" rows={2} value={settings.offer_url} onChange={e=>setSettings({...settings, offer_url:e.target.value})}></textarea>
-                                </div>
-                            </div>
-
-                            <div className="form-group">
-                                <label>Histats / Analytics ID</label>
-                                <div className="input-group">
-                                    <span className="input-group-addon"><i className="glyphicon glyphicon-stats"></i></span>
-                                    <input type="number" className="form-control" value={settings.histats_id} onChange={e=>setSettings({...settings, histats_id:e.target.value})} />
-                                </div>
-                            </div>
-
-                            <div style={{marginTop: 25}}>
-                                <button type="button" className="btn btn-block btn-save" onClick={handleSaveSettings}>
-                                    {saveBtnText}
-                                </button>
-                            </div>
-
-                        </div>
-                    </div>
+                      )}
+                    </>
+                  )}
 
                 </div>
+              </div>
+
+              {/* TOMBOL TOGGLE LIST */}
+              <div className="text-center">
+                <button className="btn-pill" onClick={()=>setShowList(!showList)}>
+                  <span className="glyphicon glyphicon-list"></span> {showList ? 'SEMBUNYIKAN LIST' : 'LIHAT DAFTAR LINK'}
+                </button>
+              </div>
+
+              {/* TABEL LIST (MUNCUL JIKA SHOWLIST TRUE) */}
+              {showList && (
+                <div className="table-container">
+                  <div className="table-responsive">
+                    <table className="table table-hover">
+                      <thead>
+                        <tr>
+                          <th style={{width:50}}>Img</th>
+                          <th>Short Link</th>
+                          <th>Link Asli</th>
+                          <th>Klik</th>
+                          <th className="text-right">Aksi</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {currentItems.length === 0 ? (
+                          <tr><td colSpan={5} className="text-center">Belum ada data link.</td></tr>
+                        ) : currentItems.map(link => (
+                          <tr key={link.id}>
+                            <td>
+                              <img src={`https://www.google.com/s2/favicons?domain=${new URL(link.url).hostname}&sz=32`} className="img-favicon" onError={(e:any)=>e.target.style.display='none'} />
+                            </td>
+                            <td>
+                              <span className="link-title">{link.id}</span>
+                            </td>
+                            <td>
+                              <span className="link-url">{link.url}</span>
+                            </td>
+                            <td><span className="badge">{link.clicks}</span></td>
+                            <td className="text-right">
+                              {/* TOMBOL COPY */}
+                              <button className="btn-icon-action" title="Copy" onClick={()=>copyText(`https://tollsfakelink.vercel.app/${link.id}`)}>
+                                <span className="glyphicon glyphicon-copy"></span>
+                              </button>
+                              
+                              {/* TOMBOL EDIT (PENTING: INI MEMANGGIL FUNGSI EDIT DI ATAS) */}
+                              <button className="btn-icon-action" title="Edit" onClick={()=>startEdit(link)}>
+                                <span className="glyphicon glyphicon-pencil"></span>
+                              </button>
+                              
+                              {/* TOMBOL DELETE */}
+                              <button className="btn-icon-action btn-icon-del" title="Hapus" onClick={()=>handleDelete(link.id)}>
+                                <span className="glyphicon glyphicon-trash"></span>
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  
+                  {/* PAGINATION */}
+                  <div className="text-center" style={{marginTop:20}}>
+                    <button className="btn btn-default btn-sm" disabled={currentPage===1} onClick={()=>setCurrentPage(currentPage-1)}>Prev</button>
+                    <span style={{margin:'0 15px', fontWeight:'bold'}}>{currentPage} / {totalPages||1}</span>
+                    <button className="btn btn-default btn-sm" disabled={currentPage>=totalPages} onClick={()=>setCurrentPage(currentPage+1)}>Next</button>
+                  </div>
+                </div>
+              )}
+
+              {/* TOMBOL TOGGLE SETTINGS */}
+              <div className="text-center" style={{marginTop:30}}>
+                <button className="btn-icon-action" style={{width:50, height:50, fontSize:24}} onClick={()=>setShowSettings(!showSettings)}>
+                  <span className="glyphicon glyphicon-cog"></span>
+                </button>
+                <div style={{fontSize:11, color:'#999', marginTop:5}}>PENGATURAN</div>
+              </div>
+
+              {/* SETTINGS AREA */}
+              {showSettings && (
+                <div className="settings-box">
+                  <h4 style={{marginTop:0, marginBottom:20, fontWeight:'bold'}}>Konfigurasi Website</h4>
+                  
+                  {/* CHECKBOX ON/OFF */}
+                  <div className="custom-checkbox" onClick={()=>setSettings({...settings, offer_active: !settings.offer_active})}>
+                    <label style={{fontWeight:'bold', width:'100%', cursor:'pointer'}}>
+                      <input type="checkbox" checked={settings.offer_active} readOnly />
+                      AKTIFKAN REDIRECT OFFER?
+                    </label>
+                    <div style={{fontSize:12, color:'#777', marginTop:5}}>Jika dicentang, pengunjung manusia akan dialihkan ke Link Offer.</div>
+                  </div>
+
+                  <div className="form-group">
+                    <label>Nama Situs</label>
+                    <input className="form-control" value={settings.site_name} onChange={e=>setSettings({...settings, site_name:e.target.value})} />
+                  </div>
+                  <div className="form-group">
+                    <label>Link Offer (Tujuan Redirect)</label>
+                    <textarea className="form-control" rows={2} value={settings.offer_url} onChange={e=>setSettings({...settings, offer_url:e.target.value})}></textarea>
+                  </div>
+                  <div className="form-group">
+                    <label>Histats ID</label>
+                    <input className="form-control" type="number" value={settings.histats_id} onChange={e=>setSettings({...settings, histats_id:e.target.value})} />
+                  </div>
+                  <button className="btn btn-primary btn-block btn-lg" onClick={handleSaveSettings} disabled={loading}>
+                    {loading ? 'MENYIMPAN...' : 'SIMPAN PENGATURAN'}
+                  </button>
+                </div>
+              )}
+
             </div>
+          </div>
         </div>
 
-        <div className="footer">
-            &copy; 2026 {settings.site_name}. All Rights Reserved.
+        <div className="text-center" style={{padding:40, color:'#bbb'}}>
+          &copy; 2026 {settings.site_name}. All Rights Reserved.
         </div>
       </>
       )}
