@@ -1,4 +1,5 @@
 import './globals.css';
+import './co.css';
 import type { Metadata, Viewport } from "next";
 import { supabase } from '@/data/supabase';
 
