@@ -1,155 +1,168 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap');
 @import url('https://fonts.googleapis.com/icon?family=Material+Icons+Round');
 
-/* --- RESET & BASE --- */
+/* --- 1. RESET & BASE --- */
 * { box-sizing: border-box; }
 body {
-  background-color: #f0f2f5; /* Abu-abu Soft (Gak Silau) */
-  font-family: 'Inter', sans-serif;
-  color: #334155;
+  font-family: 'Open Sans', sans-serif;
+  background-color: #f0f0f0; /* Abu klasik */
+  color: #333;
   margin: 0;
-  padding-top: 70px; /* Jarak Navbar */
-  min-height: 100vh;
-  display: flex; flex-direction: column;
+  padding-top: 70px; /* Space Navbar */
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh; /* Kunci Sticky Footer */
 }
 
-/* --- 1. NAVBAR (DARK MODE STYLE) --- */
-.navbar-custom {
-  background-color: #1e1e2d; /* HITAM KEBIRUAN (MEWAH) */
-  height: 65px; width: 100%;
+/* --- 2. NAVBAR (BLUE CLASSIC) --- */
+.navbar-bs3 {
+  background-color: #337ab7; /* Bootstrap 3 Primary Blue */
+  border-bottom: 1px solid #2e6da4;
+  height: 60px; width: 100%;
   position: fixed; top: 0; left: 0; z-index: 1000;
   display: flex; align-items: center;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
-.container { max-width: 950px; margin: 0 auto; padding: 0 20px; width: 100%; }
+.container {
+  max-width: 960px; /* Lebar Standar BS3 */
+  width: 100%; margin: 0 auto; padding: 0 15px;
+}
+.nav-flex { display: flex; justify-content: space-between; align-items: center; width: 100%; }
 .navbar-brand {
-  font-size: 18px; font-weight: 700; color: #fff; text-decoration: none;
-  display: flex; align-items: center; gap: 10px; letter-spacing: 0.5px;
-}
-.btn-logout {
-  background: #ef4444; color: #fff; border: none; padding: 6px 16px;
-  border-radius: 6px; font-weight: 600; font-size: 12px; cursor: pointer;
-  transition: 0.2s;
-}
-.btn-logout:hover { background: #dc2626; }
-
-/* --- 2. CARD (KOTAK RAPI) --- */
-.card {
-  background: #ffffff;
-  border-radius: 8px; /* Sudut 8px (Standar App Modern) */
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
-  margin-bottom: 24px;
-  border: 1px solid #e2e8f0;
-  overflow: hidden;
-}
-.card-header {
-  padding: 15px 25px; border-bottom: 1px solid #f1f5f9;
-  background: #f8fafc; font-weight: 700; color: #1e293b; font-size: 15px;
+  font-size: 20px; font-weight: 700; color: #fff; text-decoration: none;
   display: flex; align-items: center; gap: 8px; text-transform: uppercase;
 }
-.card-body { padding: 25px; }
+.btn-logout {
+  background: #d9534f; color: #fff; border: 1px solid #d43f3a;
+  padding: 6px 15px; font-size: 13px; border-radius: 3px; cursor: pointer;
+  font-weight: 600;
+}
+.btn-logout:hover { background: #c9302c; }
 
-/* --- 3. FORM ELEMENTS --- */
-.input-group { display: flex; width: 100%; gap: 0; }
+/* --- 3. PANELS (KOTAK RAPI) --- */
+.panel {
+  background: #fff; border: 1px solid #ddd;
+  border-radius: 4px; margin-bottom: 20px;
+  box-shadow: 0 1px 1px rgba(0,0,0,0.05);
+}
+.panel-heading {
+  background-color: #f5f5f5; border-bottom: 1px solid #ddd;
+  padding: 15px; border-radius: 3px 3px 0 0;
+  font-weight: 700; color: #333; font-size: 16px;
+  display: flex; align-items: center; gap: 8px;
+}
+.panel-body { padding: 20px; }
+
+/* --- 4. FORMS & INPUTS --- */
+.form-group { margin-bottom: 15px; }
 .form-control {
-  width: 100%; height: 50px; padding: 10px 16px;
-  border: 1px solid #cbd5e1; border-radius: 6px;
-  font-size: 15px; color: #334155; background: #fff;
-  transition: border 0.2s;
+  display: block; width: 100%; height: 46px; /* Tinggi nyaman */
+  padding: 6px 12px; font-size: 14px; line-height: 1.42857143;
+  color: #555; background-color: #fff;
+  border: 1px solid #ccc; border-radius: 4px;
+  box-shadow: inset 0 1px 1px rgba(0,0,0,0.075);
+  transition: border-color ease-in-out .15s,box-shadow ease-in-out .15s;
 }
-.form-control:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
+.form-control:focus { border-color: #66afe9; outline: 0; box-shadow: inset 0 1px 1px rgba(0,0,0,.075),0 0 8px rgba(102,175,233,.6); }
 
-/* --- 4. BUTTONS --- */
+/* --- 5. BUTTONS (FLAT & SOLID) --- */
 .btn {
-  height: 50px; padding: 0 24px; font-weight: 600; border: none; cursor: pointer;
-  border-radius: 6px; font-size: 14px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
-  transition: 0.2s;
+  display: inline-block; padding: 10px 20px; margin-bottom: 0;
+  font-size: 14px; font-weight: 600; text-align: center;
+  white-space: nowrap; vertical-align: middle; cursor: pointer;
+  border: 1px solid transparent; border-radius: 4px;
 }
-.btn-primary { background: #3b82f6; color: #fff; }
-.btn-primary:hover { background: #2563eb; }
-.btn-outline { background: #fff; border: 1px solid #cbd5e1; color: #475569; }
-.btn-outline:hover { background: #f8fafc; border-color: #94a3b8; }
-.btn-full { width: 100%; }
+.btn-primary { background-color: #337ab7; border-color: #2e6da4; color: #fff; }
+.btn-primary:hover { background-color: #286090; }
+.btn-success { background-color: #5cb85c; border-color: #4cae4c; color: #fff; }
+.btn-success:hover { background-color: #449d44; }
+.btn-default { background-color: #fff; border-color: #ccc; color: #333; }
+.btn-default:hover { background-color: #e6e6e6; }
+.btn-block { display: block; width: 100%; }
 
-/* --- 5. TABEL (SOLUSI TOMBOL TUMPUK) --- */
+/* --- 6. GRID SYSTEM MANUAL (INPUT + BUTTON) --- */
+.input-group-bs3 { display: flex; width: 100%; }
+.input-group-bs3 .form-control { border-top-right-radius: 0; border-bottom-right-radius: 0; }
+.input-group-bs3 .btn { border-top-left-radius: 0; border-bottom-left-radius: 0; margin-left: -1px; }
+
+/* --- 7. TABEL (SOLUSI TOMBOL TIDAK TURUN) --- */
 .table-responsive {
-  width: 100%; overflow-x: auto;
-  border: 1px solid #e2e8f0; border-radius: 6px;
+  width: 100%; overflow-x: auto; /* Scroll Horizontal di HP */
+  border: 1px solid #ddd; margin-bottom: 15px;
+  background: #fff;
 }
-.table { width: 100%; border-collapse: collapse; min-width: 800px; /* LEBAR MINIMUM AGAR GAK PENYET */ background: #fff; }
-.table thead th {
-  background: #1e293b; color: #fff; padding: 12px 16px;
-  text-align: left; font-size: 12px; font-weight: 700; text-transform: uppercase;
+.table { width: 100%; max-width: 100%; border-collapse: collapse; min-width: 700px; /* Paksa lebar min biar rapi */ }
+.table>thead>tr>th {
+  border-bottom: 2px solid #ddd; vertical-align: bottom;
+  padding: 12px; text-align: left; background: #f9f9f9;
 }
-.table tbody td {
-  padding: 12px 16px; border-bottom: 1px solid #f1f5f9;
-  vertical-align: middle; color: #334155; font-size: 14px;
+.table>tbody>tr>td {
+  padding: 12px; border-top: 1px solid #ddd; vertical-align: middle;
 }
-.table tbody tr:hover { background: #f8fafc; }
+.table-striped>tbody>tr:nth-of-type(odd) { background-color: #f9f9f9; }
 
-/* URL COLUMN (Biar gak lebar banget) */
-.col-url { max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #64748b; }
-/* ACTION COLUMN (KUNCI LEBARNYA) */
-.col-action { width: 140px; text-align: right; white-space: nowrap; }
-
-.btn-icon {
-  width: 32px; height: 32px; border-radius: 6px; border: 1px solid #e2e8f0;
-  background: #fff; color: #64748b; cursor: pointer; margin-left: 5px;
-  display: inline-flex; align-items: center; justify-content: center;
+/* KOLOM AKSI FIXED (INI YANG BIKIN RAPIH) */
+.col-action {
+  width: 1%; white-space: nowrap; text-align: right;
 }
-.btn-icon:hover { border-color: #3b82f6; color: #3b82f6; }
-.btn-icon.del:hover { border-color: #ef4444; color: #ef4444; background: #fef2f2; }
-
-/* --- 6. RESULT AREA (HASIL) --- */
-.result-box {
-  background: #eff6ff; border: 1px dashed #bfdbfe;
-  padding: 20px; border-radius: 8px; text-align: center; margin-top: 20px;
+.btn-xs {
+  padding: 5px 10px; font-size: 12px; line-height: 1.5; border-radius: 3px; margin-left: 5px;
 }
-.short-url-text { font-size: 18px; font-weight: 700; color: #3b82f6; margin-bottom: 15px; word-break: break-all; }
+.btn-info { background-color: #5bc0de; border-color: #46b8da; color: #fff; }
+.btn-warning { background-color: #f0ad4e; border-color: #eea236; color: #fff; }
+.btn-danger-xs { background-color: #d9534f; border-color: #d43f3a; color: #fff; }
 
-/* --- 7. SOSMED (COLORFUL) --- */
-.social-area { margin-top: 20px; padding-top: 20px; border-top: 1px solid #e2e8f0; text-align: center; }
-.social-list { display: flex; justify-content: center; gap: 10px; margin-top: 15px; }
+/* --- 8. HASIL & SOSMED --- */
+.well {
+  min-height: 20px; padding: 19px; margin-bottom: 20px;
+  background-color: #f5f5f5; border: 1px solid #e3e3e3; border-radius: 4px;
+  box-shadow: inset 0 1px 1px rgba(0,0,0,0.05); text-align: center;
+}
+.result-url { font-size: 18px; font-weight: 700; color: #337ab7; margin-bottom: 15px; word-break: break-all; }
+
+.social-wrap { text-align: center; margin-top: 15px; padding-top: 15px; border-top: 1px solid #ddd; }
+.social-icons { display: flex; justify-content: center; gap: 10px; margin-top: 10px; }
 .social-btn {
-  width: 42px; height: 42px; border-radius: 8px; display: flex; align-items: center; justify-content: center;
-  color: white; transition: transform 0.2s;
+  width: 42px; height: 42px; border-radius: 4px; display: flex; align-items: center; justify-content: center;
+  color: #fff; text-decoration: none; transition: 0.2s; font-size: 20px;
 }
-.social-btn:hover { transform: translateY(-3px); }
+.social-btn:hover { opacity: 0.9; transform: translateY(-2px); }
 .bg-wa { background: #25D366; } .bg-fb { background: #1877F2; } 
 .bg-tw { background: #1DA1F2; } .bg-tg { background: #0088cc; }
 
-/* --- 8. LOGIN POPUP (GLASS EFFECT) --- */
-.login-overlay {
+/* --- 9. LOGIN POPUP (TENGAH LAYAR) --- */
+.login-mask {
   position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(0, 0, 0, 0.6); /* Gelap */
-  backdrop-filter: blur(8px); /* BLUR PENTING */
-  z-index: 9999; display: flex; align-items: center; justify-content: center;
+  background: rgba(0,0,0,0.7); z-index: 9999;
+  display: flex; align-items: center; justify-content: center;
 }
-.login-card {
-  background: #fff; width: 90%; max-width: 380px;
-  padding: 40px; border-radius: 12px;
-  box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
-  text-align: center;
+.login-panel {
+  width: 100%; max-width: 360px; background: #fff;
+  border-radius: 4px; box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+  overflow: hidden;
 }
-.login-icon { width: 60px; height: 60px; background: #e0e7ff; color: #3b82f6; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; }
+.login-head { background: #337ab7; color: #fff; padding: 20px; text-align: center; font-weight: 700; font-size: 18px; }
+.login-body { padding: 30px; }
 
-/* --- 9. FOOTER --- */
+/* --- 10. FOOTER --- */
 .footer {
-  margin-top: auto; padding: 25px; text-align: center;
-  font-size: 13px; color: #94a3b8; background: #fff; border-top: 1px solid #e2e8f0;
+  margin-top: auto; padding: 20px; text-align: center;
+  background: #fff; border-top: 1px solid #ddd; color: #777; font-size: 13px;
 }
 
-/* --- 10. TOAST --- */
-.toast {
+/* --- 11. TOAST --- */
+.alert-toast {
   position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
-  background: #1e1e2d; color: #fff; padding: 12px 30px;
-  border-radius: 50px; font-weight: 600; font-size: 14px; z-index: 100000;
-  box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3);
+  padding: 15px 30px; border-radius: 4px; color: #fff; font-weight: 600;
+  z-index: 10000; box-shadow: 0 2px 10px rgba(0,0,0,0.2);
 }
+.alert-success { background-color: #5cb85c; }
+.alert-danger { background-color: #d9534f; }
 
-/* RESPONSIVE */
+/* RESPONSIVE TWEAKS */
 @media (max-width: 600px) {
-  .input-group { flex-direction: column; gap: 10px; }
-  .input-group .form-control { border-radius: 6px !important; }
-  .input-group .btn { width: 100%; border-radius: 6px !important; }
+  .input-group-bs3 { flex-direction: column; gap: 10px; }
+  .input-group-bs3 .form-control { border-radius: 4px !important; }
+  .input-group-bs3 .btn { width: 100%; border-radius: 4px !important; }
+  .container { padding: 0 10px; }
 }
