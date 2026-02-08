@@ -1,127 +1,128 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-@import url('https://fonts.googleapis.com/icon?family=Material+Icons+Round');
+/* --- 1. IMPORT FONTS & ICONS --- */
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/icon?family=Material+Icons');
 
-/* --- SETTING WARNA (LIGHT & DARK) --- */
-:root {
-  --radius: 4px; /* BORDER TAJAM (SESUAI REQUEST) */
-  --font: 'Inter', sans-serif;
-  /* Light Mode Default */
-  --bg-body: #f3f4f6;
-  --bg-card: #ffffff;
-  --text-main: #111827;
-  --text-muted: #6b7280;
-  --border: #e5e7eb;
-  --primary: #2563eb;
-  --primary-hover: #1d4ed8;
-  --input-bg: #ffffff;
-}
-
-[data-theme="dark"] {
-  /* Dark Mode Override */
-  --bg-body: #0f172a;
-  --bg-card: #1e293b;
-  --text-main: #f8fafc;
-  --text-muted: #94a3b8;
-  --border: #334155;
-  --primary: #3b82f6;
-  --primary-hover: #60a5fa;
-  --input-bg: #0f172a;
-}
-
-* { box-sizing: border-box; }
 body {
-  margin: 0; padding-top: 80px;
-  font-family: var(--font); background: var(--bg-body); color: var(--text-main);
-  transition: background 0.3s, color 0.3s;
+  background-color: #f0f2f5;
+  font-family: 'Roboto', sans-serif;
+  color: #333;
+  padding-top: 80px; /* Jarak Navbar Fixed */
+  margin: 0;
 }
 
-/* NAVBAR */
-.navbar {
-  position: fixed; top: 0; left: 0; width: 100%; height: 70px;
-  background: var(--bg-card); border-bottom: 1px solid var(--border);
-  z-index: 1000; display: flex; align-items: center; padding: 0 20px;
+/* --- 2. NAVBAR STYLE (Mirip Bootstrap 3) --- */
+.navbar-custom {
+  background-color: #ffffff;
+  border-bottom: 1px solid #d4d4d4;
+  height: 60px;
+  position: fixed; top: 0; left: 0; width: 100%;
+  z-index: 1000;
+  display: flex; align-items: center;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
 }
-.nav-content { max-width: 1000px; margin: 0 auto; width: 100%; display: flex; justify-content: space-between; align-items: center; }
-.brand { font-weight: 800; font-size: 1.2rem; display: flex; align-items: center; gap: 8px; color: var(--primary); }
-
-/* TOMBOL THEME & LOGOUT */
-.btn-icon { background: transparent; border: 1px solid var(--border); color: var(--text-main); padding: 8px; border-radius: var(--radius); cursor: pointer; }
-.btn-danger { background: #ef4444; color: white; border: none; padding: 8px 16px; border-radius: var(--radius); font-weight: 600; cursor: pointer; }
-
-/* CONTAINER & CARD */
-.container { max-width: 900px; margin: 0 auto; padding: 0 20px 50px; }
-.card {
-  background: var(--bg-card); border: 1px solid var(--border);
-  border-radius: var(--radius); padding: 30px; margin-bottom: 25px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+.container { max-width: 900px; margin: 0 auto; padding: 0 15px; width: 100%; }
+.navbar-brand {
+  font-size: 20px; font-weight: 700; color: #333;
+  display: flex; align-items: center; gap: 10px; text-decoration: none;
+}
+.btn-logout {
+  background: #d9534f; color: #fff; border: 1px solid #d43f3a;
+  padding: 6px 12px; font-size: 12px; border-radius: 3px; cursor: pointer;
 }
 
-/* INPUT & BUTTONS */
-.input-group { display: flex; gap: 10px; }
+/* --- 3. KOTAK UTAMA (PANEL) --- */
+.panel {
+  background: #fff; border: 1px solid #ddd;
+  border-radius: 4px; /* KOTAK RAPI (GAK BULAT) */
+  box-shadow: 0 1px 1px rgba(0,0,0,0.05);
+  margin-bottom: 20px;
+}
+.panel-body { padding: 30px; }
+.panel-header {
+  border-bottom: 1px solid #eee; padding: 15px 20px;
+  background: #f9f9f9; border-radius: 4px 4px 0 0;
+}
+.panel-title { margin: 0; font-size: 16px; font-weight: 700; color: #333; }
+
+/* --- 4. FORM & INPUT (GAYA BOOTSTRAP 3) --- */
 .form-control {
-  flex: 1; padding: 12px 15px; background: var(--input-bg);
-  border: 1px solid var(--border); border-radius: var(--radius);
-  color: var(--text-main); font-size: 1rem;
+  display: block; width: 100%; height: 45px;
+  padding: 6px 12px; font-size: 14px; color: #555;
+  background-color: #fff; border: 1px solid #ccc;
+  border-radius: 3px; /* SUDUT TAJAM */
+  box-shadow: inset 0 1px 1px rgba(0,0,0,0.075);
+  transition: border-color ease-in-out .15s,box-shadow ease-in-out .15s;
 }
-.form-control:focus { outline: none; border-color: var(--primary); }
-.btn-primary {
-  background: var(--primary); color: white; border: none;
-  padding: 12px 25px; border-radius: var(--radius); font-weight: 600;
-  cursor: pointer; display: flex; align-items: center; gap: 8px;
+.form-control:focus { border-color: #66afe9; outline: 0; box-shadow: inset 0 1px 1px rgba(0,0,0,.075),0 0 8px rgba(102,175,233,.6); }
+
+/* --- 5. TOMBOL UTAMA --- */
+.btn {
+  display: inline-block; padding: 10px 16px; margin-bottom: 0;
+  font-size: 14px; font-weight: 600; text-align: center;
+  white-space: nowrap; vertical-align: middle; cursor: pointer;
+  border: 1px solid transparent; border-radius: 3px; /* SUDUT TAJAM */
 }
-.btn-primary:hover { background: var(--primary-hover); }
+.btn-primary { background-color: #337ab7; border-color: #2e6da4; color: #fff; }
+.btn-primary:hover { background-color: #286090; border-color: #204d74; }
+.btn-success { background-color: #5cb85c; border-color: #4cae4c; color: #fff; }
+.btn-block { display: block; width: 100%; }
 
-/* PROGRESS BAR */
-.progress-wrap { margin-top: 20px; }
-.progress-bg { height: 8px; background: var(--border); border-radius: var(--radius); overflow: hidden; }
-.progress-fill { height: 100%; background: var(--primary); transition: width 0.3s ease; }
-.progress-text { text-align: center; font-size: 0.85rem; color: var(--text-muted); margin-top: 5px; }
+/* --- 6. INPUT GROUP (GABUNGAN INPUT + BUTTON) --- */
+.input-group { display: flex; width: 100%; }
+.input-group .form-control { border-top-right-radius: 0; border-bottom-right-radius: 0; }
+.input-group .btn { border-top-left-radius: 0; border-bottom-left-radius: 0; margin-left: -1px; }
 
-/* RESULT AREA & SOSMED */
-.result-area { margin-top: 25px; border-top: 1px solid var(--border); padding-top: 20px; animation: fadeIn 0.5s; }
-.sosmed-grid { display: flex; gap: 10px; justify-content: center; margin-top: 15px; }
-.btn-sosmed {
-  width: 40px; height: 40px; border-radius: var(--radius);
-  display: flex; align-items: center; justify-content: center;
-  color: white; text-decoration: none; transition: transform 0.2s;
+/* --- 7. PROGRESS BAR --- */
+.progress {
+  height: 20px; margin-bottom: 20px; overflow: hidden;
+  background-color: #f5f5f5; border-radius: 4px;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,.1);
 }
-.btn-sosmed:hover { transform: translateY(-3px); }
-.wa { background: #25D366; } .fb { background: #1877F2; } .tw { background: #1DA1F2; } .tg { background: #0088cc; }
-
-/* TABLE */
-.table-responsive { overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius); }
-.table { width: 100%; border-collapse: collapse; min-width: 600px; }
-.table th { background: var(--border); padding: 12px; text-align: left; font-size: 0.85rem; color: var(--text-muted); }
-.table td { padding: 12px; border-top: 1px solid var(--border); vertical-align: middle; }
-.action-btn { background: transparent; border: 1px solid var(--border); padding: 5px; border-radius: var(--radius); cursor: pointer; color: var(--text-muted); margin-left: 5px; }
-.action-btn:hover { border-color: var(--primary); color: var(--primary); }
-
-/* SETTINGS TOGGLE */
-.settings-toggle {
-  width: 100%; padding: 15px; background: var(--bg-card);
-  border: 1px solid var(--border); color: var(--text-main);
-  border-radius: var(--radius); font-weight: 600; cursor: pointer;
-  display: flex; justify-content: space-between; align-items: center;
+.progress-bar-striped {
+  float: left; width: 0%; height: 100%; font-size: 12px;
+  line-height: 20px; color: #fff; text-align: center;
+  background-color: #337ab7;
+  background-image: linear-gradient(45deg,rgba(255,255,255,.15) 25%,transparent 25%,transparent 50%,rgba(255,255,255,.15) 50%,rgba(255,255,255,.15) 75%,transparent 75%,transparent);
+  background-size: 40px 40px; animation: progress-bar-stripes 2s linear infinite;
+  transition: width 0.3s ease;
 }
+@keyframes progress-bar-stripes { from {background-position: 40px 0;} to {background-position: 0 0;} }
 
-/* LOGIN POPUP (BLUR & CENTER) */
+/* --- 8. TABLE STYLE --- */
+.table { width: 100%; max-width: 100%; margin-bottom: 20px; background: #fff; border-collapse: collapse; }
+.table>thead>tr>th { border-bottom: 2px solid #ddd; padding: 12px; text-align: left; }
+.table>tbody>tr>td { border-top: 1px solid #ddd; padding: 12px; vertical-align: middle; }
+.table-hover>tbody>tr:hover { background-color: #f5f5f5; }
+
+/* BUTTON ACTION DI TABEL (KECIL) */
+.btn-xs { padding: 4px 8px; font-size: 12px; border-radius: 3px; margin-right: 5px; }
+.btn-warning { background-color: #f0ad4e; border-color: #eea236; color: #fff; } /* EDIT */
+.btn-danger-xs { background-color: #d9534f; border-color: #d43f3a; color: #fff; } /* DELETE */
+.btn-info { background-color: #5bc0de; border-color: #46b8da; color: #fff; } /* COPY */
+
+/* --- 9. SOSMED ICONS --- */
+.social-area { text-align: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee; }
+.social-icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 40px; height: 40px; border-radius: 50%; color: #fff;
+  margin: 0 5px; text-decoration: none; font-size: 20px;
+}
+.bg-wa { background: #25D366; } .bg-fb { background: #1877F2; } .bg-tw { background: #1DA1F2; }
+
+/* --- 10. LOGIN POPUP (BLUR HITAM) --- */
 .login-overlay {
   position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(0,0,0,0.8); backdrop-filter: blur(5px);
+  background: rgba(0, 0, 0, 0.85); /* HITAM PEKAT */
+  backdrop-filter: blur(5px);
   z-index: 9999; display: flex; align-items: center; justify-content: center;
 }
 .login-box {
-  background: var(--bg-card); padding: 40px; width: 90%; max-width: 380px;
-  border-radius: var(--radius); border: 1px solid var(--border);
-  text-align: center; box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+  background: #fff; padding: 40px; width: 90%; max-width: 350px;
+  border-radius: 4px; box-shadow: 0 5px 15px rgba(0,0,0,.5);
 }
 
 /* TOAST */
-.toast {
+.custom-toast {
   position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
-  padding: 10px 20px; border-radius: var(--radius); color: white;
-  font-weight: 600; z-index: 100000; box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+  background: #333; color: #fff; padding: 10px 20px; border-radius: 4px; z-index: 100000;
 }
-.toast.success { background: #10b981; } .toast.error { background: #ef4444; }
-
-@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
