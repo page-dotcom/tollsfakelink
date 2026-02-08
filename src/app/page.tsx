@@ -162,68 +162,71 @@ export default function Home() {
         </div>
       )}
 
-      {/* LOGIN POPUP (MODAL BS3) */}
+      {/* --- LOGIN POPUP BARU (FIXED & RAPI) --- */}
       {!session && (
-        {/* LOGIN POPUP VERSI BARU (CLASS AUTH-) */}
-      {!session && (
-        <div className="auth-overlay">
-          <div className="auth-card">
+        <div className="login-overlay">
+          <div className="login-box" style={{padding: '40px 30px'}}>
             
-            <div className="auth-header">
-              {/* ICON GEMBOK SVG DI DALAM LINGKARAN */}
-              <div className="auth-icon-circle">
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/>
+            {/* Header dengan Icon Bulat */}
+            <div className="login-header" style={{textAlign: 'center', marginBottom: '30px'}}>
+              <div className="login-icon" style={{
+                width: '70px', height: '70px', 
+                background: '#eff6ff', color: '#3b82f6', 
+                borderRadius: '50%', display: 'flex', 
+                alignItems: 'center', justifyContent: 'center', 
+                margin: '0 auto 15px auto',
+                boxShadow: '0 4px 15px rgba(59, 130, 246, 0.2)'
+              }}>
+                {/* SVG GEMBOK KEREN */}
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 17a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm6-9h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM8.9 6c0-1.71 1.39-3.1 3.1-3.1s3.1 1.39 3.1 3.1v2H8.9V6zM18 20H6V10h12v10z"/>
                 </svg>
               </div>
-              <h3 className="auth-title">Welcome Back</h3>
-              <p className="auth-subtitle">Sign in to manage Dashboard</p>
+              <h3 style={{margin: '0 0 5px 0', color: '#1e293b', fontWeight: '800', fontSize: '22px'}}>Welcome Back</h3>
+              <p style={{margin: 0, color: '#64748b', fontSize: '14px'}}>Silakan login untuk akses dashboard</p>
             </div>
 
-            <div className="auth-body">
-              <form onSubmit={handleLogin}>
-                
-                <div className="auth-group">
-                  <label className="auth-label">Email Address</label>
-                  {/* ICON EMAIL SVG */}
-                  <svg className="auth-input-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
-                  
-                  <input 
-                    className="auth-input" 
-                    type="email" 
-                    placeholder="nama@email.com" 
-                    value={email} 
-                    onChange={e=>setEmail(e.target.value)} 
-                    required 
-                  />
-                </div>
+            {/* Form Input */}
+            <form onSubmit={handleLogin}>
+              <div className="form-group" style={{marginBottom: '15px'}}>
+                <label style={{display:'block', fontSize:'12px', fontWeight:'700', color:'#475569', marginBottom:'8px', textTransform:'uppercase'}}>Email Address</label>
+                <input 
+                  className="form-control" 
+                  type="email" 
+                  placeholder="admin@example.com" 
+                  value={email} 
+                  onChange={e=>setEmail(e.target.value)} 
+                  required 
+                  style={{background: '#f8fafc'}}
+                />
+              </div>
+              
+              <div className="form-group" style={{marginBottom: '25px'}}>
+                <label style={{display:'block', fontSize:'12px', fontWeight:'700', color:'#475569', marginBottom:'8px', textTransform:'uppercase'}}>Password</label>
+                <input 
+                  className="form-control" 
+                  type="password" 
+                  placeholder="••••••••" 
+                  value={password} 
+                  onChange={e=>setPassword(e.target.value)} 
+                  required 
+                  style={{background: '#f8fafc'}}
+                />
+              </div>
 
-                <div className="auth-group">
-                  <label className="auth-label">Password</label>
-                  {/* ICON LOCK SVG */}
-                  <svg className="auth-input-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-                  
-                  <input 
-                    className="auth-input" 
-                    type="password" 
-                    placeholder="••••••••" 
-                    value={password} 
-                    onChange={e=>setPassword(e.target.value)} 
-                    required 
-                  />
-                </div>
-
-                <button className="auth-btn">
-                  SIGN IN NOW
-                </button>
-
-              </form>
-            </div>
+              <button className="btn btn-primary btn-full" style={{
+                height: '50px', fontSize: '15px', fontWeight: 'bold', 
+                boxShadow: '0 4px 12px rgba(37, 99, 235, 0.3)', width: '100%'
+              }}>
+                MASUK SEKARANG
+              </button>
+            </form>
 
           </div>
         </div>
       )}
 
+      
       {/* DASHBOARD */}
       {session && (
         <>
