@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import { supabase } from '@/data/supabase';
 
-// Fungsi untuk membuat ID acak 6 karakter
-function generateRandomId(length = 6) {
+// Fungsi Acak ID
+function generateRandomId(length = 5) {
   const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
   let result = '';
   for (let i = 0; i < length; i++) {
@@ -16,36 +16,19 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { url } = body;
     
-    // 1. Ambil Header Keamanan
-    const authHeader = request.headers.get('authorization');
-    const userAgent = request.headers.get('user-agent') || '';
-    
-    // 2. Ambil PIN dari Environment Variable Vercel
-    const PIN_RAHASIA = process.env.MY_SECRET_PIN;
-
-    // 3. LOGIKA SATPAM: Cek apakah ini akses dari Termux/Python?
-    // Jika User-Agent mengandung 'python-requests' atau ada Header Authorization, wajib cek PIN.
-    if (userAgent.includes('python-requests') || authHeader) {
-      if (authHeader !== `Bearer ${PIN_RAHASIA}`) {
-        return NextResponse.json(
-          { success: false, error: 'Akses Ditolak: PIN Salah atau Tidak Ada' }, 
-          { status: 401 }
-        );
-      }
-    }
-
-    // 4. Validasi input URL
+    // Validasi URL
     if (!url) {
-      return NextResponse.json({ success: false, error: 'URL harus diisi' }, { status: 400 });
+      return NextResponse.json({ success: false, error: 'URL wajib diisi' }, { status: 400 });
     }
 
-    // 5. Proses pembuatan Short ID
-    const shortId = generateRandomId(6);
+    // Buat Short ID
+    const shortId = generateRandomId(5);
 
-    // 6. Simpan ke Supabase
+    // Simpan ke Supabase (Tanpa Cek PIN)
+    // RLS di database akan mengizinkan karena kita sudah setting Policy
     const { data, error } = await supabase
       .from('links')
-      .insert([{ id: shortId, url: url }])
+      .insert([{ id: shortId, url: url, clicks: 0 }]) // Default clicks 0
       .select();
 
     if (error) {
@@ -53,7 +36,6 @@ export async function POST(request: Request) {
       throw error;
     }
 
-    // 7. Respon Sukses
     return NextResponse.json({ 
       success: true, 
       shortId, 
