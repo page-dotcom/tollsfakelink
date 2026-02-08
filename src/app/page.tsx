@@ -34,8 +34,12 @@ export default function Home() {
   const ITEMS_PER_PAGE = 5;
 
   // --- FEEDBACK ---
-  const [copyBtnText, setCopyBtnText] = useState("COPY");
-  const [saveBtnText, setSaveBtnText] = useState("SIMPAN PENGATURAN");
+  const [copyBtnText, setBtnCopyText] = useState("COPY");
+  
+  // PERBAIKAN DISINI: Nama variabel disamakan
+  const [btnSaveText, setBtnSaveText] = useState("SIMPAN PENGATURAN"); 
+  const [saveBtnColor, setSaveBtnColor] = useState(""); // Tambahan biar gak error warna
+  
   const [toast, setToast] = useState<{msg: string, type: 'success'|'error'|''} | null>(null);
 
   // --- INIT ---
@@ -59,14 +63,12 @@ export default function Home() {
   }, [toast]);
 
   function loadData() {
-    // Ambil Settings
     supabase.from('settings').select('*').single().then(({ data }) => {
       if (data) {
         setSettings(data);
         document.title = data.site_name;
       }
     });
-    // Ambil Links
     fetchLinks();
   }
 
@@ -121,7 +123,6 @@ export default function Home() {
           showToast("Link berhasil dibuat!", "success");
         } else {
           setViewState('form');
-          // TAMPILKAN ERROR ASLI DARI API
           showToast(data.error || "Gagal membuat link", "error");
         }
       }, 500);
@@ -139,15 +140,24 @@ export default function Home() {
   };
 
   const handleSaveSettings = async () => {
+    // FIX: Menggunakan nama variabel yang benar (setBtnSaveText)
     setBtnSaveText("MENYIMPAN...");
+    
     await supabase.from('settings').update({
       site_name: settings.site_name,
       offer_url: settings.offer_url,
       offer_active: settings.offer_active,
       histats_id: settings.histats_id
     }).eq('id', 1);
+    
     setBtnSaveText("BERHASIL!");
-    setTimeout(() => setBtnSaveText("SIMPAN PENGATURAN"), 2000);
+    setSaveBtnColor("#27ae60"); // Hijau
+    
+    document.title = settings.site_name;
+    setTimeout(() => {
+        setBtnSaveText("SIMPAN PENGATURAN");
+        setSaveBtnColor(""); // Reset warna
+    }, 2000);
   };
 
   // Helper UI
@@ -157,7 +167,10 @@ export default function Home() {
     setBtnCopyText("COPIED!");
     setTimeout(() => setBtnCopyText("COPY"), 1500);
   };
-  const getFavicon = (url: string) => `https://www.google.com/s2/favicons?domain=${new URL(url).hostname}&sz=64`;
+  const getFavicon = (url: string) => {
+    try { return `https://www.google.com/s2/favicons?domain=${new URL(url).hostname}&sz=64`; }
+    catch { return ""; }
+  };
 
   // Pagination Logic
   const indexOfLastItem = currentPage * ITEMS_PER_PAGE;
@@ -320,7 +333,7 @@ export default function Home() {
                       <label>Histats ID</label>
                       <input className="form-control" value={settings.histats_id} onChange={e=>setSettings({...settings, histats_id:e.target.value})} />
                     </div>
-                    <button className="btn btn-success btn-block" onClick={handleSaveSettings}>{btnSaveText}</button>
+                    <button className="btn btn-success btn-block" style={{background: saveBtnColor || '#5cb85c'}} onClick={handleSaveSettings}>{btnSaveText}</button>
                   </div>
                 )}
 
