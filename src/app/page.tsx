@@ -80,7 +80,7 @@ export default function Home() {
   const handleLogin = async (e: FormEvent) => {
     e.preventDefault();
     const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) showNotif("Login Gagal: " + error.message, "danger");
+    if (error) showNotif("Login Failed: " + error.message, "danger");
   };
 
   const handleShorten = async (e: FormEvent) => {
