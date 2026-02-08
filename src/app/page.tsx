@@ -277,7 +277,8 @@ export default function Home() {
                                     <th>Image</th>
                                     <th>Short Link</th>
                                     <th>Clicks</th>
-                                    <th class="text-right">Action</th>
+                                    {/* FIX: MENGGANTI 'class' MENJADI 'className' */}
+                                    <th className="text-right">Action</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -293,6 +294,7 @@ export default function Home() {
                                     <td>
                                         <span className="badge" style={{background:'#3498db'}}>{link.clicks}</span>
                                     </td>
+                                    {/* FIX: MENGGANTI 'class' MENJADI 'className' */}
                                     <td className="text-right">
                                         <button className="btn-action-icon" onClick={()=>handleCopy(`https://tollsfakelink.vercel.app/${link.id}`)}>
                                             <span className="glyphicon glyphicon-copy"></span>
