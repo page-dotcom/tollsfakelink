@@ -1,140 +1,154 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/icon?family=Material+Icons+Round');
 
-/* --- RESET & BASE --- */
+/* RESET */
 * { box-sizing: border-box; }
 body {
-  background-color: #f3f4f6; /* Abu Platinum Bersih */
-  font-family: 'Inter', -apple-system, sans-serif;
-  color: #1f2937;
+  background-color: #e9ecef; /* ABU MUDA (Bukan Putih Polos) */
+  font-family: 'Roboto', sans-serif;
+  color: #343a40;
   margin: 0;
-  padding-top: 70px; /* Space untuk Navbar */
-  padding-bottom: 60px; /* Space untuk Footer */
-  min-height: 100vh;
-  position: relative;
+  padding-top: 70px; /* Space Navbar */
+  padding-bottom: 60px;
 }
 
-/* --- 1. NAVBAR (FIXED, CLEAN) --- */
-.navbar {
-  position: fixed; top: 0; left: 0; width: 100%; height: 70px;
-  background: #ffffff; border-bottom: 1px solid #e5e7eb;
-  z-index: 1000; display: flex; align-items: center;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+/* --- 1. NAVBAR (DARK MODE STYLE) --- */
+.navbar-custom {
+  background-color: #212529; /* HITAM PEKAT */
+  height: 65px;
+  position: fixed; top: 0; left: 0; width: 100%;
+  z-index: 1000;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  display: flex; align-items: center;
 }
-.container {
-  max-width: 900px; margin: 0 auto; padding: 0 20px; width: 100%;
-}
+.container { max-width: 900px; margin: 0 auto; padding: 0 15px; width: 100%; }
 .navbar-inner { display: flex; justify-content: space-between; align-items: center; width: 100%; }
-.brand { font-size: 1.25rem; font-weight: 700; color: #111827; letter-spacing: -0.025em; display: flex; align-items: center; gap: 8px; }
+.navbar-brand {
+  font-size: 18px; font-weight: 700; color: #ffffff !important; /* TEXT PUTIH */
+  text-decoration: none; display: flex; align-items: center; gap: 10px;
+  letter-spacing: 1px;
+}
+.btn-logout {
+  background: #c0392b; color: #fff; border: none; padding: 6px 15px;
+  border-radius: 3px; font-weight: 600; font-size: 12px; cursor: pointer;
+}
 
-/* --- 2. CARD / PANEL (KOTAK TEGAS) --- */
-.card {
+/* --- 2. PANEL / CARD (KOTAK BERSIH) --- */
+.panel {
   background: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-radius: 6px; /* SUDUT 6px (TIDAK BULAT, TAPI TIDAK TAJAM SAKIT) */
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-  margin-bottom: 24px; overflow: hidden;
+  border-radius: 4px; /* Sudut Kotak Rapi */
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  margin-bottom: 25px;
+  border-top: 3px solid #3498db; /* Garis Biru di Atas Biar Cantik */
 }
-.card-header {
-  padding: 20px 24px; border-bottom: 1px solid #f3f4f6;
-  background: #ffffff;
+.panel-header {
+  padding: 15px 20px; border-bottom: 1px solid #eee;
+  background: #fff; font-weight: 700; color: #444; font-size: 16px;
 }
-.card-title { margin: 0; font-size: 1.1rem; font-weight: 600; color: #111827; }
-.card-body { padding: 24px; }
+.panel-body { padding: 25px; }
 
-/* --- 3. INPUTS & FORMS --- */
-.form-group { margin-bottom: 16px; }
-.label { display: block; margin-bottom: 6px; font-size: 0.875rem; font-weight: 500; color: #4b5563; }
-.input {
-  width: 100%; padding: 12px 16px; font-size: 1rem;
-  border: 1px solid #d1d5db; border-radius: 6px;
-  background: #fff; transition: border-color 0.2s;
+/* --- 3. INPUT & FORM --- */
+.form-control {
+  display: block; width: 100%; height: 45px;
+  padding: 10px 15px; font-size: 14px; color: #495057;
+  background-color: #fff; border: 1px solid #ced4da;
+  border-radius: 3px; /* KOTAK */
+  transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out;
 }
-.input:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+.form-control:focus { border-color: #3498db; outline: 0; box-shadow: 0 0 0 3px rgba(52,152,219,0.15); }
 
 /* --- 4. BUTTONS --- */
 .btn {
   display: inline-flex; align-items: center; justify-content: center;
-  padding: 12px 24px; font-weight: 600; font-size: 0.95rem;
-  border: 1px solid transparent; border-radius: 6px; cursor: pointer;
-  transition: all 0.2s; gap: 8px;
+  font-weight: 600; text-align: center; vertical-align: middle;
+  cursor: pointer; border: 1px solid transparent;
+  padding: 10px 20px; font-size: 14px; line-height: 1.5;
+  border-radius: 3px; gap: 5px; transition: all 0.2s;
 }
-.btn-primary { background: #2563eb; color: #fff; }
-.btn-primary:hover { background: #1d4ed8; }
-.btn-outline { background: #fff; border-color: #d1d5db; color: #374151; }
-.btn-outline:hover { background: #f9fafb; border-color: #9ca3af; }
-.btn-danger { background: #ef4444; color: #fff; }
-.btn-sm { padding: 6px 12px; font-size: 0.85rem; }
-.btn-full { width: 100%; }
+.btn-primary { background-color: #3498db; border-color: #3498db; color: #fff; }
+.btn-primary:hover { background-color: #2980b9; }
+.btn-success { background-color: #27ae60; color: #fff; }
+.btn-outline { background: #fff; border: 1px solid #ddd; color: #555; }
+.btn-outline:hover { background: #f8f9fa; border-color: #bbb; }
+.btn-block { display: flex; width: 100%; }
 
 /* --- 5. PROGRESS BAR --- */
-.progress-wrap { height: 8px; background: #e5e7eb; border-radius: 4px; overflow: hidden; margin-top: 10px; }
-.progress-fill { height: 100%; background: #2563eb; transition: width 0.3s ease; }
+.progress {
+  height: 10px; background-color: #e9ecef; border-radius: 20px;
+  overflow: hidden; margin-top: 15px; margin-bottom: 15px;
+}
+.progress-bar {
+  height: 100%; background-color: #3498db;
+  transition: width 0.3s ease;
+}
 
-/* --- 6. TABLE (RESPONSIVE WRAPPER) --- */
+/* --- 6. TABEL (KONTRAST TINGGI) --- */
 .table-responsive {
-  width: 100%; overflow-x: auto; /* SCROLL DI HP */
-  border: 1px solid #e5e7eb; border-radius: 6px;
+  display: block; width: 100%; overflow-x: auto;
+  border: 1px solid #ddd; border-radius: 3px;
 }
-.table { width: 100%; border-collapse: collapse; min-width: 600px; background: #fff; }
-.table th {
-  background: #f9fafb; text-align: left; padding: 12px 16px;
-  font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;
-  color: #6b7280; border-bottom: 1px solid #e5e7eb; font-weight: 600;
+.table { width: 100%; border-collapse: collapse; min-width: 700px; background: #fff; }
+.table thead th {
+  background-color: #343a40; /* HEADER HITAM */
+  color: #ffffff; /* TEKS PUTIH */
+  padding: 12px 15px; text-align: left; font-size: 13px; font-weight: 600;
+  text-transform: uppercase; border: none;
 }
-.table td { padding: 14px 16px; border-bottom: 1px solid #e5e7eb; vertical-align: middle; font-size: 0.9rem; }
-.table tr:last-child td { border-bottom: none; }
+.table tbody td {
+  padding: 12px 15px; vertical-align: middle;
+  border-bottom: 1px solid #dee2e6; color: #333; font-size: 14px;
+}
+.table tbody tr:nth-of-type(odd) { background-color: #f8f9fa; /* ZEBRA STRIPE */ }
+.table tbody tr:hover { background-color: #e9ecef; }
 
-/* --- 7. ICONS & ACTIONS --- */
-.action-btn {
-  padding: 6px; border: 1px solid #e5e7eb; border-radius: 4px; background: #fff;
-  color: #6b7280; cursor: pointer; margin-left: 4px;
+/* ACTION BUTTONS (DITABEL) */
+.btn-action {
+  padding: 6px; width: 32px; height: 32px;
+  border-radius: 4px; border: 1px solid #ccc; background: #fff;
+  color: #555; cursor: pointer; margin-right: 5px;
+  display: inline-flex; align-items: center; justify-content: center;
 }
-.action-btn:hover { border-color: #2563eb; color: #2563eb; }
-.delete-btn:hover { border-color: #ef4444; color: #ef4444; }
+.btn-action:hover { background: #333; color: #fff; border-color: #333; }
+.btn-del:hover { background: #c0392b; color: #fff; border-color: #c0392b; }
 
-/* --- 8. SOCIAL MEDIA GRID --- */
-.social-grid { display: flex; gap: 12px; justify-content: center; margin-top: 20px; }
-.social-item {
-  width: 44px; height: 44px; border-radius: 8px;
+/* --- 7. SOSMED AREA --- */
+.social-box { text-align: center; margin-top: 20px; padding-top: 20px; border-top: 1px dashed #ddd; }
+.social-icons { display: flex; justify-content: center; gap: 10px; margin-top: 10px; }
+.icon-link {
+  width: 40px; height: 40px; border-radius: 4px; /* KOTAK */
   display: flex; align-items: center; justify-content: center;
-  color: white; transition: transform 0.2s;
+  color: white; text-decoration: none; font-size: 20px;
 }
-.social-item:hover { transform: translateY(-3px); }
-.bg-wa { background: #25D366; }
-.bg-fb { background: #1877F2; }
-.bg-tw { background: #1DA1F2; }
-.bg-tg { background: #0088cc; }
+.bg-wa { background: #25D366; } .bg-fb { background: #1877F2; } .bg-tw { background: #1DA1F2; }
 
-/* --- 9. LOGIN MODAL (TENGAH & RAPI) --- */
-.login-overlay {
+/* --- 8. LOGIN POPUP (GELAP) --- */
+.login-backdrop {
   position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
-  z-index: 9999; display: flex; align-items: center; justify-content: center;
-}
-.login-box {
-  background: #fff; width: 100%; max-width: 380px; padding: 40px;
-  border-radius: 8px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
-}
-
-/* --- 10. CHECKBOX --- */
-.checkbox-card {
-  display: flex; align-items: center; padding: 16px;
-  background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px; cursor: pointer;
-}
-.checkbox-card input { width: 18px; height: 18px; margin-right: 12px; accent-color: #2563eb; }
-
-/* --- 11. FOOTER --- */
-.footer {
-  position: absolute; bottom: 0; width: 100%; height: 60px;
-  background: #fff; border-top: 1px solid #e5e7eb;
+  background: rgba(0,0,0,0.85); z-index: 9999;
   display: flex; align-items: center; justify-content: center;
-  font-size: 0.85rem; color: #6b7280;
+}
+.login-panel {
+  background: #fff; width: 90%; max-width: 360px;
+  padding: 30px; border-radius: 4px; box-shadow: 0 15px 30px rgba(0,0,0,0.5);
 }
 
-/* --- 12. TOAST --- */
+/* --- 9. CHECKBOX --- */
+.checkbox-row {
+  display: flex; align-items: center; background: #f1f3f5;
+  padding: 12px; border-radius: 4px; cursor: pointer; border: 1px solid #ddd;
+}
+.checkbox-row input { width: 18px; height: 18px; margin-right: 10px; cursor: pointer; }
+
+/* --- 10. FOOTER & TOAST --- */
+.footer {
+  position: absolute; bottom: 0; width: 100%; height: 50px;
+  background: #fff; border-top: 1px solid #ddd;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; color: #777;
+}
 .toast {
-  position: fixed; top: 24px; left: 50%; transform: translateX(-50%);
-  background: #1f2937; color: #fff; padding: 10px 24px;
-  border-radius: 50px; font-weight: 500; font-size: 0.9rem;
-  box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); z-index: 100000;
+  position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+  background: #333; color: #fff; padding: 12px 25px;
+  border-radius: 50px; z-index: 100000; font-size: 14px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
 }
