@@ -166,3 +166,112 @@ body {
   .input-group-bs3 .btn { width: 100%; border-radius: 4px !important; }
   .container { padding: 0 10px; }
 }
+/* --- NEW LOGIN STYLE (ANTI BENTROK) --- */
+
+/* Background Gelap Transparan + Blur */
+.auth-overlay {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(30, 41, 59, 0.85); /* Dark Blueish Gray */
+  backdrop-filter: blur(8px); /* Efek Kaca Buram */
+  z-index: 99999;
+  display: flex; align-items: center; justify-content: center;
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Kotak Login */
+.auth-card {
+  background: #ffffff;
+  width: 90%; max-width: 380px;
+  border-radius: 12px; /* Sudut tumpul (gak tajam) */
+  box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+  transform: translateY(0);
+  animation: slideUp 0.4s ease-out;
+}
+
+/* Header dengan Dekorasi */
+.auth-header {
+  background: #f8fafc;
+  padding: 30px 20px 20px;
+  text-align: center;
+  border-bottom: 1px solid #f1f5f9;
+  position: relative;
+}
+
+/* Garis Dekorasi Warna di Atas */
+.auth-header::before {
+  content: '';
+  position: absolute; top: 0; left: 0; width: 100%; height: 4px;
+  background: linear-gradient(90deg, #3b82f6, #8b5cf6); /* Gradasi Biru-Ungu */
+}
+
+/* Icon Lingkaran */
+.auth-icon-circle {
+  width: 60px; height: 60px;
+  background: #eff6ff;
+  color: #3b82f6;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 15px;
+  box-shadow: 0 4px 10px rgba(59, 130, 246, 0.15);
+}
+
+.auth-title {
+  margin: 0; font-size: 1.25rem; font-weight: 700; color: #1e293b;
+  letter-spacing: -0.5px;
+}
+
+.auth-subtitle {
+  margin: 5px 0 0; font-size: 0.85rem; color: #64748b;
+}
+
+/* Area Form */
+.auth-body { padding: 30px; }
+
+.auth-group { margin-bottom: 20px; position: relative; }
+
+.auth-label {
+  display: block; font-size: 0.8rem; font-weight: 600; color: #475569;
+  margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;
+}
+
+.auth-input {
+  width: 100%; height: 48px; padding: 0 15px 0 45px; /* Padding kiri buat icon */
+  border: 1px solid #cbd5e1;
+  border-radius: 8px; /* Input agak bulat dikit */
+  font-size: 0.95rem; color: #334155;
+  background: #fff;
+  transition: all 0.2s;
+}
+
+/* Icon di dalam Input */
+.auth-input-icon {
+  position: absolute; left: 15px; top: 40px; /* Sesuaikan posisi vertikal */
+  color: #94a3b8; pointer-events: none;
+}
+
+.auth-input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+  outline: none;
+}
+
+.auth-btn {
+  width: 100%; height: 50px;
+  background: linear-gradient(to right, #3b82f6, #2563eb);
+  color: white; border: none; border-radius: 8px;
+  font-weight: 600; font-size: 1rem; cursor: pointer;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.auth-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(37, 99, 235, 0.35);
+}
+
+/* Animasi */
+@keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
