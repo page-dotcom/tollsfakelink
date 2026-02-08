@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, FormEvent } from 'react';
@@ -294,7 +293,7 @@ export default function Home() {
                               <td><div style={{maxWidth:180, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', color:'#777', fontSize:12}}>{link.url}</div></td>
                               <td style={{textAlign:'center', fontWeight:'bold'}}>{link.clicks}</td>
                               <td className="col-action">
-                                <button className="btn btn-info btn-xs" title="Copy" onClick={()=>copyText(`https://tollsfakelink.vercel.app/${link.id}`)}>C</button>
+                                <button className="btn btn-info btn-xs" title="Copy" onClick={()=>copyText(`https://sekphim-tv.eu.org/${link.id}`)}>C</button>
                                 <button className="btn btn-warning btn-xs" title="Edit" onClick={()=>startEdit(link)}>E</button>
                                 <button className="btn btn-danger-xs btn-xs" title="Hapus" onClick={()=>handleDelete(link.id)}>X</button>
                               </td>
