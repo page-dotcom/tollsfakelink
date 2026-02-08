@@ -4,7 +4,7 @@ import { useState, useEffect, FormEvent } from 'react';
 import { supabase } from '@/data/supabase';
 
 export default function Home() {
-  // --- STATE ---
+  // STATE
   const [session, setSession] = useState<any>(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -23,11 +23,11 @@ export default function Home() {
   const [shortUrl, setShortUrl] = useState("");
   const [links, setLinks] = useState<any[]>([]);
 
-  // Toggles (Default False)
+  // TOGGLES (Default False)
   const [showList, setShowList] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
 
-  // UI Text
+  // TEKS TOMBOL
   const [saveBtnText, setSaveBtnText] = useState("SIMPAN PENGATURAN");
   const [copyBtnText, setCopyBtnText] = useState("COPY");
   const [toast, setToast] = useState<{msg: string, type: 'success'|'error'|''} | null>(null);
@@ -36,7 +36,7 @@ export default function Home() {
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 5;
 
-  // --- INIT ---
+  // INIT DATA
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
@@ -48,6 +48,7 @@ export default function Home() {
     });
   }, []);
 
+  // TOAST TIMER
   useEffect(() => {
     if (toast) {
       const timer = setTimeout(() => setToast(null), 3000);
@@ -68,7 +69,7 @@ export default function Home() {
     if (json.success) setLinks(json.data || []);
   }
 
-  // --- ACTIONS ---
+  // FUNGSI LOGIN
   const handleLogin = async (e: FormEvent) => {
     e.preventDefault();
     setLoginLoading(true);
@@ -84,6 +85,7 @@ export default function Home() {
 
   const showToast = (msg: string, type: 'success'|'error') => setToast({ msg, type });
 
+  // FUNGSI SHORTEN
   const handleShorten = async (e: FormEvent) => {
     e.preventDefault();
     if (!longUrl) return;
@@ -144,7 +146,7 @@ export default function Home() {
     setTimeout(() => setCopyBtnText("COPY"), 1500);
   };
 
-  // Pagination Logic
+  // Pagination Data
   const indexOfLastItem = currentPage * ITEMS_PER_PAGE;
   const indexOfFirstItem = indexOfLastItem - ITEMS_PER_PAGE;
   const currentItems = links.slice(indexOfFirstItem, indexOfLastItem);
@@ -152,18 +154,18 @@ export default function Home() {
 
   return (
     <>
-      {/* 0. TOAST */}
+      {/* TOAST NOTIFICATION */}
       {toast && (
         <div style={{
           position: 'fixed', top: 20, left: '50%', transform: 'translateX(-50%)',
           background: toast.type === 'success' ? '#27ae60' : '#c0392b', color: '#fff',
-          padding: '10px 20px', borderRadius: 50, zIndex: 999999, fontWeight: 'bold'
+          padding: '10px 20px', borderRadius: 50, zIndex: 999999, fontWeight: 'bold', boxShadow: '0 5px 15px rgba(0,0,0,0.3)'
         }}>
           {toast.msg}
         </div>
       )}
 
-      {/* 1. LOGIN POPUP (Tampilan Diperbaiki) */}
+      {/* LOGIN POPUP (Fixed Style) */}
       {!session && (
         <div className="login-overlay">
           <div className="login-box">
@@ -181,7 +183,7 @@ export default function Home() {
         </div>
       )}
 
-      {/* 2. DASHBOARD */}
+      {/* MAIN DASHBOARD */}
       {session && (
       <>
       <nav className="navbar navbar-custom navbar-fixed-top">
@@ -210,7 +212,8 @@ export default function Home() {
                     </div>
 
                     <div className="tool-body">
-                        {/* FORM */}
+                        
+                        {/* FORM INPUT */}
                         {viewState === 'form' && (
                         <div id="form-view">
                             <form onSubmit={handleShorten}>
@@ -243,7 +246,7 @@ export default function Home() {
                             </div>
                             <span className="reset-link" onClick={()=>{setViewState('form'); setLongUrl('');}} style={{display:'block', textAlign:'center', marginTop:15, color:'#999', cursor:'pointer', textDecoration:'underline'}}>Shorten another link</span>
                             
-                            {/* SOCIAL ICONS */}
+                            {/* SOCIAL ICONS (SVG ASLI KAMU) */}
                             <div className="social-icons">
                                 <a href={`https://api.whatsapp.com/send?text=${shortUrl}`} target="_blank" className="bg-wa"><svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></a>
                                 <a href={`https://www.facebook.com/sharer/sharer.php?u=${shortUrl}`} target="_blank" className="bg-fb"><svg viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></a>
@@ -252,10 +255,11 @@ export default function Home() {
                             </div>
                         </div>
                         )}
+
                     </div>
                 </div>
 
-                {/* TOGGLE BUTTON LIST */}
+                {/* BUTTON LIST */}
                 <div className="text-center">
                     <button type="button" className="btn-toggle-list" onClick={()=>setShowList(!showList)}>
                         <span className="glyphicon glyphicon-list-alt"></span> {showList ? 'HIDE LIST' : 'MY URL LIST'}
@@ -263,8 +267,7 @@ export default function Home() {
                 </div>
 
                 {/* LIST AREA */}
-                {showList && (
-                <div className="list-box">
+                <div className="list-box" style={{display: showList ? 'block' : 'none'}}>
                     <div className="table-responsive">
                         <table className="table table-hover">
                             <thead>
@@ -300,9 +303,8 @@ export default function Home() {
                         <button className="btn btn-default btn-sm" disabled={currentPage>=totalPages} onClick={()=>setCurrentPage(currentPage+1)}>Next</button>
                     </div>
                 </div>
-                )}
 
-                {/* TOGGLE BUTTON SETTINGS */}
+                {/* BUTTON SETTINGS */}
                 <div className="text-center" style={{marginTop:30, marginBottom:20}}>
                     <button type="button" className="btn-gear-toggle" onClick={()=>setShowSettings(!showSettings)}>
                         <span className="glyphicon glyphicon-cog"></span>
@@ -311,8 +313,7 @@ export default function Home() {
                 </div>
 
                 {/* SETTINGS PANEL */}
-                {showSettings && (
-                <div className="settings-panel">
+                <div className="settings-panel" style={{display: showSettings ? 'block' : 'none'}}>
                     <div className="settings-header">
                         <h4><span className="glyphicon glyphicon-wrench" style={{fontSize:16}}></span> Konfigurasi Situs</h4>
                     </div>
@@ -321,7 +322,7 @@ export default function Home() {
                         {/* CHECKBOX ON/OFF */}
                         <div className="form-group" style={{background:'#f9f9f9', padding:10, borderRadius:5, marginBottom:20}}>
                             <div className="checkbox" style={{margin:0}}>
-                                <label style={{width:'100%', fontWeight:'bold'}}>
+                                <label style={{width:'100%', fontWeight:'bold', cursor:'pointer'}}>
                                     <input type="checkbox" style={{marginRight:10}} checked={settings.offer_active} onChange={e=>setSettings({...settings, offer_active:e.target.checked})} />
                                     AKTIFKAN REDIRECT OFFER?
                                 </label>
@@ -356,7 +357,6 @@ export default function Home() {
                         </div>
                     </div>
                 </div>
-                )}
 
             </div>
         </div>
