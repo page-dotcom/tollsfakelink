@@ -1,144 +1,158 @@
 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
 @import url('https://fonts.googleapis.com/icon?family=Material+Icons+Round');
 
+/* --- RESET BASIC --- */
+* { box-sizing: border-box; }
 body {
-  background-color: #eef2f5; /* Background Abu Elegan (Bukan Putih) */
+  background-color: #f4f6f9;
   font-family: 'Roboto', sans-serif;
   color: #333;
   margin: 0;
-  padding-top: 80px; /* Jarak Navbar */
-  padding-bottom: 50px;
+  padding-top: 70px; /* Jarak Navbar */
+  padding-bottom: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 /* --- 1. NAVBAR --- */
 .navbar-custom {
-  background: #222; /* HITAM */
-  height: 60px; width: 100%;
-  position: fixed; top: 0; left: 0; z-index: 1000;
+  background: #fff;
+  border-bottom: 1px solid #ddd;
+  height: 65px;
+  position: fixed; top: 0; left: 0; width: 100%;
+  z-index: 1000;
   display: flex; align-items: center;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
 }
-.container { max-width: 950px; margin: 0 auto; padding: 0 15px; width: 100%; }
+.container {
+  max-width: 800px; margin: 0 auto; padding: 0 15px; width: 100%;
+}
 .navbar-brand {
-  font-size: 18px; font-weight: 700; color: #fff; text-decoration: none;
-  display: flex; align-items: center; gap: 8px;
+  font-size: 18px; font-weight: 700; color: #2c3e50;
+  text-decoration: none; display: flex; align-items: center; gap: 8px;
 }
 .btn-logout {
-  background: #e74c3c; color: #fff; border: none; padding: 5px 12px;
-  border-radius: 4px; font-size: 12px; cursor: pointer;
+  background: #e74c3c; color: #fff; border: none; padding: 6px 15px;
+  border-radius: 4px; font-weight: 600; font-size: 12px; cursor: pointer;
 }
 
-/* --- 2. PANEL (CARD) --- */
+/* --- 2. CARD / PANEL UTAMA --- */
 .panel {
-  background: #fff;
-  border-radius: 8px; /* AGAK LOVE (TIDAK KOTAK BANGET) */
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-  margin-bottom: 25px;
-  border: 1px solid #e0e0e0;
-  overflow: hidden;
+  background: #fff; border: 1px solid #e1e1e1;
+  border-radius: 6px; /* Kotak Rapi */
+  box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+  margin-bottom: 25px; overflow: hidden;
 }
 .panel-header {
-  background: #f8f9fa; padding: 15px 20px;
+  padding: 15px 25px; background: #f8f9fa;
   border-bottom: 1px solid #eee;
-  font-weight: 700; color: #444;
+  font-weight: 700; color: #444; font-size: 16px;
+  text-transform: uppercase; letter-spacing: 0.5px;
 }
-.panel-body { padding: 25px; }
+.panel-body { padding: 30px; }
 
-/* --- 3. INPUT FORM --- */
-.form-control {
-  width: 100%; height: 45px; padding: 10px;
-  border: 1px solid #ccc; border-radius: 5px; /* Rapi */
-  font-size: 14px; display: block;
+/* --- 3. INPUT SHORTEN AREA (BAGUS) --- */
+.shorten-wrap {
+  display: flex; gap: 10px; /* Jarak Input & Tombol */
 }
-.form-control:focus { border-color: #3498db; outline: none; }
+.form-control {
+  width: 100%; height: 50px; padding: 10px 15px;
+  font-size: 15px; border: 1px solid #ccc; border-radius: 4px;
+  background: #fff; color: #333;
+}
+.form-control:focus { border-color: #3498db; outline: none; box-shadow: 0 0 0 2px rgba(52,152,219,0.2); }
 
 /* --- 4. BUTTONS --- */
 .btn {
-  padding: 10px 20px; font-weight: 600; border: none; cursor: pointer;
-  border-radius: 5px; font-size: 14px; display: inline-flex; align-items: center; justify-content: center; gap: 5px;
+  padding: 0 25px; height: 50px; font-weight: 600; border: none; cursor: pointer;
+  border-radius: 4px; font-size: 14px; display: inline-flex; align-items: center; justify-content: center;
 }
 .btn-primary { background: #3498db; color: #fff; }
+.btn-primary:hover { background: #2980b9; }
 .btn-success { background: #27ae60; color: #fff; }
-.btn-danger { background: #c0392b; color: #fff; }
-.btn-block { width: 100%; display: flex; }
+.btn-outline { background: #fff; border: 1px solid #ddd; color: #666; }
+.btn-outline:hover { background: #f1f1f1; border-color: #ccc; }
+.btn-block { width: 100%; }
 
-.input-group { display: flex; width: 100%; }
-.input-group .form-control { border-radius: 5px 0 0 5px; }
-.input-group .btn { border-radius: 0 5px 5px 0; }
-
-/* --- 5. TABEL (FIXED DESKTOP & MOBILE) --- */
-.table-responsive {
-  width: 100%; overflow-x: auto;
-  border: 1px solid #ddd; border-radius: 6px;
+/* --- 5. RESULT AREA (HASIL) --- */
+.result-container {
+  background: #f1f8ff; border: 1px solid #dbefff;
+  padding: 20px; border-radius: 6px; text-align: center;
+  animation: fadeIn 0.3s;
 }
-.table { width: 100%; border-collapse: collapse; min-width: 750px; /* Lebar Min Biar Rapi */ }
-
-.table thead th {
-  background: #343a40; color: #fff; /* Header Gelap */
-  padding: 12px; text-align: left; font-size: 13px; text-transform: uppercase;
+.link-display {
+  font-size: 18px; font-weight: 700; color: #3498db;
+  margin-bottom: 15px; word-break: break-all;
 }
-.table tbody td {
-  padding: 12px; border-bottom: 1px solid #eee;
-  vertical-align: middle; color: #333; font-size: 14px;
+.social-area {
+  margin-top: 20px; padding-top: 15px; border-top: 1px solid #e0eaf5;
 }
-/* BARIS BELANG (ZEBRA) */
-.table tbody tr:nth-child(even) { background: #f9f9f9; }
-
-/* KOLOM AKSI (BIAR TOMBOL SEJAJAR) */
-.td-action {
-  white-space: nowrap; /* JANGAN TURUN KE BAWAH */
-  width: 1%; /* Fit to content */
-}
-.btn-icon {
-  width: 32px; height: 32px; border-radius: 4px; border: 1px solid #ddd;
-  background: #fff; color: #555; cursor: pointer; margin-right: 4px;
-  display: inline-flex; align-items: center; justify-content: center;
-}
-.btn-icon:hover { background: #333; color: #fff; }
-.btn-icon.del:hover { background: #e74c3c; border-color: #e74c3c; color: #fff; }
-
-/* --- 6. SOSMED ICONS --- */
-.social-row { display: flex; justify-content: center; gap: 10px; margin-top: 15px; }
-.social-link {
-  width: 45px; height: 45px; border-radius: 8px;
+.social-icons { display: flex; gap: 10px; justify-content: center; margin-top: 10px; }
+.social-btn {
+  width: 42px; height: 42px; border-radius: 6px;
   display: flex; align-items: center; justify-content: center;
-  color: #fff; text-decoration: none; transition: transform 0.2s;
+  color: #fff; transition: transform 0.2s;
 }
-.social-link:hover { transform: translateY(-3px); }
-.social-link svg { width: 22px; height: 22px; fill: white; }
+.social-btn:hover { transform: translateY(-3px); }
+.social-btn svg { width: 20px; height: 20px; fill: white; }
 .bg-wa { background: #25D366; }
 .bg-fb { background: #1877F2; }
 .bg-tw { background: #1DA1F2; }
 .bg-tg { background: #0088cc; }
 
-/* --- 7. LOGIN POPUP (BAGUS) --- */
+/* --- 6. TABLE STYLE (RAPI) --- */
+.table-responsive { width: 100%; overflow-x: auto; border: 1px solid #eee; border-radius: 4px; }
+.table { width: 100%; border-collapse: collapse; min-width: 650px; background: #fff; }
+.table thead th {
+  background: #343a40; color: #fff; padding: 12px 15px;
+  text-align: left; font-size: 13px; font-weight: 600;
+}
+.table tbody td {
+  padding: 12px 15px; border-bottom: 1px solid #eee;
+  vertical-align: middle; font-size: 14px;
+}
+.table tbody tr:nth-child(even) { background: #f9f9f9; }
+
+/* BUTTON KECIL DI TABEL */
+.btn-xs {
+  padding: 5px 10px; font-size: 11px; height: auto; border-radius: 3px; margin-right: 5px;
+}
+.btn-del { background: #e74c3c; color: #fff; }
+
+/* --- 7. FOOTER AREA --- */
+.footer {
+  margin-top: auto; /* Dorong ke paling bawah */
+  background: #fff; border-top: 1px solid #ddd;
+  padding: 20px; text-align: center;
+  color: #777; font-size: 13px;
+}
+
+/* --- 8. LOGIN POPUP --- */
 .login-overlay {
   position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(0,0,0,0.85); /* Gelap Pekat */
-  backdrop-filter: blur(5px);
+  background: rgba(0,0,0,0.8); backdrop-filter: blur(5px);
   z-index: 9999; display: flex; align-items: center; justify-content: center;
 }
 .login-box {
-  background: #fff; width: 90%; max-width: 380px;
-  padding: 40px 30px; border-radius: 12px; /* AGAK ROUNDED */
-  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-  text-align: center; position: relative;
-}
-.login-icon-wrap {
-  width: 70px; height: 70px; background: #eef2f5; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  margin: 0 auto 20px auto;
+  background: #fff; width: 90%; max-width: 360px;
+  padding: 40px; border-radius: 8px; text-align: center;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
 }
 
-/* --- 8. CHECKBOX & TOAST --- */
-.check-area {
-  background: #f1f3f5; padding: 12px; border-radius: 6px;
-  display: flex; align-items: center; cursor: pointer; border: 1px solid #ddd;
+/* --- 9. MEDIA QUERIES (RESPONSIF HP VS DESKTOP) --- */
+@media (max-width: 768px) {
+  /* HP: Input & Tombol Numpuk */
+  .shorten-wrap { flex-direction: column; }
+  .shorten-wrap .btn { width: 100%; }
+  
+  /* HP: Padding lebih kecil */
+  .panel-body { padding: 20px; }
+  .container { padding: 0 10px; }
+  
+  /* HP: Tombol Toggle Full Width */
+  .toggle-btn-group { flex-direction: column; }
+  .toggle-btn-group .btn { width: 100%; margin-bottom: 10px; margin-right: 0 !important; }
 }
-.check-area input { width: 18px; height: 18px; margin-right: 10px; }
 
-.toast {
-  position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
-  background: #222; color: #fff; padding: 12px 25px;
-  border-radius: 50px; z-index: 100000; font-size: 13px; font-weight: 600;
-}
+@keyframes fadeIn { from {opacity:0; transform:translateY(10px);} to {opacity:1; transform:translateY(0);} }
