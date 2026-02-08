@@ -183,7 +183,7 @@ export default function Home() {
                 </svg>
               </div>
               <h3 style={{margin: '0 0 5px 0', color: '#1e293b', fontWeight: '800', fontSize: '22px'}}>Welcome Back</h3>
-              <p style={{margin: 0, color: '#64748b', fontSize: '14px'}}>Silakan login untuk akses dashboard</p>
+              <p style={{margin: 0, color: '#64748b', fontSize: '14px'}}>Please login to access the dashboard</p>
             </div>
 
             {/* Form Input */}
@@ -218,7 +218,7 @@ export default function Home() {
                 height: '50px', fontSize: '15px', fontWeight: 'bold', 
                 boxShadow: '0 4px 12px rgba(37, 99, 235, 0.3)', width: '100%'
               }}>
-                MASUK SEKARANG
+                SIGN IN NOW
               </button>
             </form>
 
