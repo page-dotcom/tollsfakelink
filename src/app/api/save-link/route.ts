@@ -1,53 +1,34 @@
 import { NextResponse } from 'next/server';
-import { supabase } from '@/data/supabase';
+import { createClient } from '@supabase/supabase-js';
 
-// Fungsi Acak ID
-function generateRandomId(length = 5) {
-  const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  let result = '';
-  for (let i = 0; i < length; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return result;
-}
-
-export async function POST(request: Request) {
+export async function POST(req: Request) {
   try {
-    const body = await request.json();
+    // 1. Buat Koneksi Supabase Manual (Biar pasti nyambung)
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // 2. Ambil Data
+    const body = await req.json();
     const { url } = body;
-    
-    // Validasi URL
-    if (!url) {
-      return NextResponse.json({ success: false, error: 'URL wajib diisi' }, { status: 400 });
-    }
 
-    // Buat Short ID
-    const shortId = generateRandomId(5);
+    if (!url) return NextResponse.json({ success: false, error: 'URL kosong' }, { status: 400 });
 
-    // Simpan ke Supabase (Tanpa Cek PIN)
-    // RLS di database akan mengizinkan karena kita sudah setting Policy
-    const { data, error } = await supabase
+    // 3. Bikin ID Pendek (5 Karakter)
+    const shortId = Math.random().toString(36).substring(2, 7);
+
+    // 4. Input ke Database (Tanpa Cek Auth/PIN - Langsung Tembak)
+    const { error } = await supabase
       .from('links')
-      .insert([{ id: shortId, url: url, clicks: 0 }]) // Default clicks 0
-      .select();
+      .insert([{ id: shortId, url: url, clicks: 0 }]);
 
     if (error) {
-      console.error('Supabase Error:', error);
-      throw error;
+      return NextResponse.json({ success: false, error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ 
-      success: true, 
-      shortId, 
-      url,
-      message: 'Link berhasil dibuat!' 
-    });
+    return NextResponse.json({ success: true, shortId });
 
-  } catch (error: any) {
-    console.error('API Error:', error.message);
-    return NextResponse.json(
-      { success: false, error: error.message }, 
-      { status: 500 }
-    );
+  } catch (err: any) {
+    return NextResponse.json({ success: false, error: err.message }, { status: 500 });
   }
 }
