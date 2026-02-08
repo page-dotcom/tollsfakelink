@@ -1,9 +1,13 @@
 import { NextResponse } from 'next/server';
-import { supabase } from '@/data/supabase';
+import { createClient } from '@supabase/supabase-js';
 
-// 1. GET: Ambil Daftar Link
-export async function GET(req: Request) {
-  // Langsung ambil data (Gak usah cek PIN, RLS database yang ngatur)
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
+
+// GET: Ambil Semua Link
+export async function GET() {
   const { data, error } = await supabase
     .from('links')
     .select('*')
@@ -13,31 +17,20 @@ export async function GET(req: Request) {
   return NextResponse.json({ success: true, data });
 }
 
-// 2. DELETE: Hapus Link
+// DELETE: Hapus Link
 export async function DELETE(req: Request) {
-  try {
-    const { id } = await req.json();
-    const { error } = await supabase.from('links').delete().eq('id', id);
-
-    if (error) throw error;
-    return NextResponse.json({ success: true });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
+  const { id } = await req.json();
+  const { error } = await supabase.from('links').delete().eq('id', id);
+  
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  return NextResponse.json({ success: true });
 }
 
-// 3. PATCH: Edit Link
+// PATCH: Edit Link
 export async function PATCH(req: Request) {
-  try {
-    const { id, newUrl } = await req.json();
-    const { error } = await supabase
-      .from('links')
-      .update({ url: newUrl })
-      .eq('id', id);
+  const { id, newUrl } = await req.json();
+  const { error } = await supabase.from('links').update({ url: newUrl }).eq('id', id);
 
-    if (error) throw error;
-    return NextResponse.json({ success: true });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  return NextResponse.json({ success: true });
 }
