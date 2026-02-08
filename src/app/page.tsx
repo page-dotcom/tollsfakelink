@@ -41,7 +41,7 @@ export default function Home() {
 
   // --- PAGINATION ---
   const [currentPage, setCurrentPage] = useState(1);
-  const ITEMS_PER_PAGE = 10;
+  const ITEMS_PER_PAGE = 5;
 
   // --- INIT ---
   useEffect(() => {
@@ -407,7 +407,8 @@ export default function Home() {
                     </div>
                     
                     <div style={{padding:'20px'}}>
-                        {/* FITUR ON/OFF (INI YANG SAYA KEMBALIKAN) */}
+                        
+                        {/* TOGGLE ON/OFF OFFER (INI FITUR YANG DIMINTA) */}
                         <div className="checkbox" style={{marginBottom: 20, background: '#f0f0f0', padding: 10, borderRadius: 5}}>
                           <label style={{color: '#333', fontWeight: 'bold', width:'100%'}}>
                             <input 
