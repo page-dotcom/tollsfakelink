@@ -33,7 +33,7 @@ export default function Home() {
 
   // PAGINATION
   const [currentPage, setCurrentPage] = useState(1);
-  const ITEMS_PER_PAGE = 5;
+  const ITEMS_PER_PAGE = 10;
 
   // INIT
   useEffect(() => {
@@ -164,20 +164,62 @@ export default function Home() {
 
       {/* LOGIN POPUP (MODAL BS3) */}
       {!session && (
-        <div className="login-mask">
-          <div className="login-panel">
-            <div className="login-head">ADMIN LOGIN</div>
-            <div className="login-body">
+        {/* LOGIN POPUP VERSI BARU (CLASS AUTH-) */}
+      {!session && (
+        <div className="auth-overlay">
+          <div className="auth-card">
+            
+            <div className="auth-header">
+              {/* ICON GEMBOK SVG DI DALAM LINGKARAN */}
+              <div className="auth-icon-circle">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/>
+                </svg>
+              </div>
+              <h3 className="auth-title">Welcome Back</h3>
+              <p className="auth-subtitle">Sign in to manage Dashboard</p>
+            </div>
+
+            <div className="auth-body">
               <form onSubmit={handleLogin}>
-                <div className="form-group">
-                  <input className="form-control" type="email" placeholder="Email Address" value={email} onChange={e=>setEmail(e.target.value)} required />
+                
+                <div className="auth-group">
+                  <label className="auth-label">Email Address</label>
+                  {/* ICON EMAIL SVG */}
+                  <svg className="auth-input-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+                  
+                  <input 
+                    className="auth-input" 
+                    type="email" 
+                    placeholder="nama@email.com" 
+                    value={email} 
+                    onChange={e=>setEmail(e.target.value)} 
+                    required 
+                  />
                 </div>
-                <div className="form-group">
-                  <input className="form-control" type="password" placeholder="Password" value={password} onChange={e=>setPassword(e.target.value)} required />
+
+                <div className="auth-group">
+                  <label className="auth-label">Password</label>
+                  {/* ICON LOCK SVG */}
+                  <svg className="auth-input-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                  
+                  <input 
+                    className="auth-input" 
+                    type="password" 
+                    placeholder="••••••••" 
+                    value={password} 
+                    onChange={e=>setPassword(e.target.value)} 
+                    required 
+                  />
                 </div>
-                <button className="btn btn-primary btn-block">MASUK</button>
+
+                <button className="auth-btn">
+                  SIGN IN NOW
+                </button>
+
               </form>
             </div>
+
           </div>
         </div>
       )}
