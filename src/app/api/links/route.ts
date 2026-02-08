@@ -1,21 +1,13 @@
 import { NextResponse } from 'next/server';
 import { supabase } from '@/data/supabase';
 
-// Cek PIN Keamanan (Wajib!)
-const cekAuth = (req: Request) => {
-  const authHeader = req.headers.get('authorization');
-  const PIN = process.env.MY_SECRET_PIN;
-  return authHeader === `Bearer ${PIN}`;
-};
-
-// 1. GET: Ambil Daftar Link (Untuk Menu List di Termux)
+// 1. GET: Ambil Daftar Link
 export async function GET(req: Request) {
-  if (!cekAuth(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
+  // Langsung ambil data (Gak usah cek PIN, RLS database yang ngatur)
   const { data, error } = await supabase
     .from('links')
     .select('*')
-    .order('created_at', { ascending: false }); // Urutkan dari yang terbaru
+    .order('created_at', { ascending: false });
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ success: true, data });
@@ -23,25 +15,29 @@ export async function GET(req: Request) {
 
 // 2. DELETE: Hapus Link
 export async function DELETE(req: Request) {
-  if (!cekAuth(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  try {
+    const { id } = await req.json();
+    const { error } = await supabase.from('links').delete().eq('id', id);
 
-  const { id } = await req.json();
-  const { error } = await supabase.from('links').delete().eq('id', id);
-
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ success: true });
+    if (error) throw error;
+    return NextResponse.json({ success: true });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
 }
 
 // 3. PATCH: Edit Link
 export async function PATCH(req: Request) {
-  if (!cekAuth(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  try {
+    const { id, newUrl } = await req.json();
+    const { error } = await supabase
+      .from('links')
+      .update({ url: newUrl })
+      .eq('id', id);
 
-  const { id, newUrl } = await req.json();
-  const { error } = await supabase
-    .from('links')
-    .update({ url: newUrl })
-    .eq('id', id);
-
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ success: true });
+    if (error) throw error;
+    return NextResponse.json({ success: true });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
 }
